@@ -1,0 +1,83 @@
+<!-- views/login.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - SkyBook</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins :wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css ">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/stylesheets/login.css">
+</head>
+<body>
+
+  <!-- Top Right Toast Message -->
+  <% if (successMessage || errorMessage) { %>
+    <div class="toast-container">
+      <% if (successMessage) { %>
+        <div class="toast success"><%= successMessage %></div>
+      <% } else if (errorMessage) { %>
+        <div class="toast error"><%= errorMessage %></div>
+      <% } %>
+    </div>
+  <% } %>
+
+  <!-- Background & Overlay -->
+  <div class="background">
+    <div class="overlay">
+      <div class="form-container">
+        <div class="form-left">
+          <i class="fas fa-plane-arrival fa-3x icon-primary"></i>
+          <h2>Welcome Back</h2>
+          <p>Log in to continue booking flights.</p>
+        </div>
+        <div class="form-right">
+          <h3>Login to Your Account</h3>
+
+          <form action="/login" method="POST">
+            <div class="input-group">
+              <i class="fas fa-envelope input-icon"></i>
+              <input type="email" name="email" placeholder="Email Address" required>
+            </div>
+
+            <div class="input-group">
+              <i class="fas fa-lock input-icon"></i>
+              <input type="password" name="password" id="password" placeholder="Password" required>
+            </div>
+
+            <div class="form-check mb-3">
+              <input type="checkbox" id="showPassword" class="form-check-input">
+              <label for="showPassword" class="form-check-label">Show Password</label>
+            </div>
+
+            <button type="submit" class="btn-submit">
+              <i class="fas fa-sign-in-alt"></i> Log In
+            </button>
+          </form>
+
+          <p class="login-link">
+            Don't have an account? <a href="/signup">Sign Up</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS for password visibility toggle -->
+  <script>
+    const showPasswordCheckbox = document.getElementById('showPassword');
+    const passwordInput = document.getElementById('password');
+
+    showPasswordCheckbox.addEventListener('change', function () {
+      const type = this.checked ? 'text' : 'password';
+      passwordInput.type = type;
+    });
+  </script>
+</body>
+</html>

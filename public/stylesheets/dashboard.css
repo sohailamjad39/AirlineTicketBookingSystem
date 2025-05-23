@@ -1,0 +1,312 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body,
+html {
+  height: 100%;
+  font-family: "Poppins", sans-serif;
+  /* background: url('https://images.unsplash.com/photo-1502602898657-3e91760cbb34 ') no-repeat center center fixed; */
+  background: black;
+  background-size: cover;
+  color: #fff;
+  scroll-behavior: smooth;
+}
+
+/* Top Navigation Bar */
+.top-nav {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.logo i {
+  color: #00c9ff;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropbtn {
+  background-color: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: white;
+}
+
+.dropbtn-label {
+  cursor: pointer;
+  font-size: 20px;
+  color: white;
+}
+
+.dropdown-toggle {
+  display: none;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 40px;
+  background-color: rgba(255, 255, 255, 0.3);
+  min-width: 200px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  backdrop-filter: blur(30px);
+  transition: all 0.3s ease;
+}
+
+.dropdown-content a {
+  color: white;
+  padding: 12px 20px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.3s ease;
+}
+
+.dropdown-content a:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-toggle:checked ~ .dropdown-content {
+  display: block;
+}
+
+/* Main Layout */
+.main-container {
+  display: flex;
+  margin-top: 60px;
+  min-height: calc(100vh - 60px);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background: linear-gradient(to bottom, #0f2027, #203a43);
+  min-height: 100%;
+  padding: 30px 20px;
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0 10px 10px 0;
+}
+
+.sidebar ul {
+  list-style: none;
+  margin-top: 30px;
+}
+
+.sidebar ul li {
+  margin-bottom: 20px;
+}
+
+.sidebar ul li a {
+  text-decoration: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar ul li a:hover {
+  opacity: 0.8;
+}
+
+.sidebar ul li a i {
+  width: 24px;
+  text-align: center;
+}
+
+/* Main Content */
+.content {
+  flex-grow: 1;
+  padding: 40px;
+  background-color: rgba(255, 255, 255, 0.1);
+  min-height: 100vh;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.content h1 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.content p {
+  font-size: 15px;
+  margin-bottom: 40px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card-icon {
+  font-size: 32px;
+  color: #00c9ff;
+  margin-bottom: 10px;
+}
+
+.card h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.card p {
+  font-size: 14px;
+}
+
+/* Flight Search Form */
+.search-form {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  backdrop-filter: blur(10px);
+}
+
+.search-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  flex: 1;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.form-group select,
+.form-group input[type="date"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+
+.btn-search {
+  width: 100%;
+  padding: 10px;
+  background-color: #00c9ff;
+  color: white;
+  border: none;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-search:hover {
+  background-color: #00aaff;
+}
+
+.results-table {
+  overflow-x: auto;
+}
+
+.results-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.results-table th,
+.results-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.results-table th {
+  background-color: rgba(255, 255, 255, 0.15);
+  font-weight: 600;
+}
+
+.btn-book {
+  display: inline-block;
+  background-color: #28a745;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.btn-book:hover {
+  background-color: #218838;
+}
+
+.form-group select option[data-countryid] {
+  display: none;
+}
+
+.form-group select option[data-country] {
+  display: block; /* Show only when country matches */
+}

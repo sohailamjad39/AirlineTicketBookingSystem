@@ -1,0 +1,284 @@
+<!-- views/dashboard.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - SkyBook</title>
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins :wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css "
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/stylesheets/dashboard.css" />
+  </head>
+  <body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+      <div class="logo">
+        <i class="fas fa-plane-departure"></i>
+        <span>SkyBook Dashboard</span>
+      </div>
+
+      <div class="user-menu">
+        <span><%= user.FirstName %> <%= user.LastName %></span>
+        <div class="dropdown">
+          <label for="dropdown-toggle" class="dropbtn-label">
+            <i class="fas fa-user-circle"></i>
+          </label>
+          <input type="checkbox" id="dropdown-toggle" class="dropdown-toggle" />
+
+          <div class="dropdown-content">
+            <a href="/profile/edit"
+              ><i class="fas fa-user-edit"></i> Edit Profile</a
+            >
+            <a href="/bookings"
+              ><i class="fas fa-ticket-alt"></i> My Bookings</a
+            >
+            <a href="/change-password"
+              ><i class="fas fa-key"></i> Change Password</a
+            >
+            <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <ul>
+          <li>
+            <a href="#"><i class="fas fa-sitemap"></i> Dashboard</a>
+          </li>
+          <li>
+            <a href="#"><i class="fas fa-plane"></i> Flight Scheduling</a>
+          </li>
+          <li>
+            <a href="/search"
+              ><i class="fas fa-ticket-alt"></i> Search Flights</a
+            >
+          </li>
+          <li>
+            <a href="#"><i class="fas fa-chair"></i> Seat Management</a>
+          </li>
+          <li>
+            <a href="#"
+              ><i class="fas fa-credit-card"></i> Payments & Cancellations</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><i class="fas fa-chart-line"></i> Reporting & Analytics</a
+            >
+          </li>
+          <li>
+            <a href="#"><i class="fas fa-users-cog"></i> Admin Tools</a>
+          </li>
+        </ul>
+      </aside>
+
+      <!-- Content Area -->
+      <section class="content">
+        <h1>Search Flights</h1>
+        <p>
+          Find available flights based on origin, destination, date, airline,
+          and more.
+        </p>
+
+        <!-- Flight Search Form -->
+        <form action="/search" method="GET" class="search-form">
+          <div class="search-row">
+            <!-- Country & Airport Selection -->
+            <div class="search-row">
+              <!-- Origin Country -->
+              <div class="form-group">
+                <label for="originCountry">Origin Country</label>
+                <select name="originCountry" id="originCountry" required>
+                  <option value="">Select Country</option>
+                  <% countries.forEach(country => { %>
+                  <option value="<%= country.CountryID %>">
+                    <%= country.Name %>
+                  </option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <!-- Origin Airport -->
+              <div class="form-group">
+                <label for="origin">Origin Airport</label>
+                <select name="origin" id="origin" required>
+                  <option value="">Select Airport</option>
+                  <% airports.forEach(airport => { %>
+                  <option
+                    value="<%= airport.AirportID %>"
+                    data-countryid="<%= airport.CountryID %>"
+                  >
+                    <%= airport.AirportName %> (<%= airport.AirportCode %>) -
+                    <%= airport.City %>
+                  </option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <!-- Destination Country -->
+              <div class="form-group">
+                <label for="destinationCountry">Destination Country</label>
+                <select
+                  name="destinationCountry"
+                  id="destinationCountry"
+                  required
+                >
+                  <option value="">Select Country</option>
+                  <% countries.forEach(country => { %>
+                  <option value="<%= country.CountryID %>">
+                    <%= country.Name %>
+                  </option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <!-- Destination Airport -->
+              <div class="form-group">
+                <label for="destination">Destination Airport</label>
+                <select name="destination" id="destination" required>
+                  <option value="">Select Airport</option>
+                  <% airports.forEach(airport => { %>
+                  <option
+                    value="<%= airport.AirportID %>"
+                    data-countryid="<%= airport.CountryID %>"
+                  >
+                    <%= airport.AirportName %> (<%= airport.AirportCode %>) -
+                    <%= airport.City %>
+                  </option>
+                  <% }) %>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="date">Travel Date</label>
+              <input type="date" name="date" id="date" required />
+            </div>
+          </div>
+
+          <div class="search-row">
+            <div class="form-group">
+              <label for="airline">Airline</label>
+              <select name="airline" id="airline">
+                <option value="">Any Airline</option>
+                <% airlines.forEach(airline => { %>
+                <option value="<%= airline.AirlineID %>">
+                  <%= airline.Name %> (<%= airline.Code %>)
+                </option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="classType">Class Type</label>
+              <select name="classType" id="classType">
+                <option value="">Any Class</option>
+                <option value="Economy">Economy</option>
+                <option value="Business">Business</option>
+                <option value="First">First</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <button type="submit" class="btn-search">
+                <i class="fas fa-search"></i> Search Flights
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Search Results -->
+        <% if (flights && flights.length > 0) { %>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Flight</th>
+                <th>Airline</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Departure</th>
+                <th>Arrival</th>
+                <th>Seats Available</th>
+                <th>Price</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% flights.forEach(flight => { %>
+              <tr>
+                <td><strong><%= flight.FlightNumber %></strong></td>
+                <td><%= flight.AirlineName %></td>
+                <td>
+                  <%= flight.DepartureCity %> (<%= flight.DepartureCode %>)
+                </td>
+                <td><%= flight.ArrivalCity %> (<%= flight.ArrivalCode %>)</td>
+                <td>
+                  <%= new Date(flight.DepartureDateTime).toLocaleString() %>
+                </td>
+                <td>
+                  <%= new Date(flight.ArrivalDateTime).toLocaleString() %>
+                </td>
+                <td><%= flight.AvailableSeats %></td>
+                <td>$<%= flight.BasePrice %></td>
+                <td>
+                  <a
+                    href="/book?flightId=<%= flight.FlightID %>"
+                    class="btn-book"
+                  >
+                    Book Now
+                  </a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } else if (flights) { %>
+        <p>No flights found matching your criteria.</p>
+        <% } %>
+      </section>
+    </div>
+    <script>
+        function filterAirports(countryId, airportId) {
+          const countrySelect = document.getElementById(countryId);
+          const airportSelect = document.getElementById(airportId);
+      
+          if (!countrySelect || !airportSelect) return;
+      
+          countrySelect.addEventListener('change', () => {
+            const selectedCountryID = countrySelect.value;
+      
+            Array.from(airportSelect.options).forEach(option => {
+              if (option.dataset.countryid === selectedCountryID || option.value === '') {
+                option.style.display = 'block';
+              } else {
+                option.style.display = 'none';
+              }
+            });
+          });
+        }
+      
+        // Apply filtering
+        filterAirports('originCountry', 'origin');
+        filterAirports('destinationCountry', 'destination');
+      </script>
+  </body>
+</html>

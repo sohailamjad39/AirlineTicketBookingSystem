@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up - SkyBook</title>
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins :wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css "
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/stylesheets/signup.css" />
+  </head>
+  <body>
+    <!-- Top Right Toast Message -->
+    <% if (successMessage || errorMessage) { %>
+    <div class="toast-container">
+      <% if (successMessage) { %>
+      <div class="toast success"><%= successMessage %></div>
+      <% } else if (errorMessage) { %>
+      <div class="toast error"><%= errorMessage %></div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- Background & Overlay -->
+    <div class="background">
+      <div class="overlay">
+        <!-- Scrollable Wrapper -->
+        <div class="scroll-wrapper">
+          <div class="form-container">
+            <div class="form-left">
+              <i class="fas fa-plane-departure fa-3x icon-primary"></i>
+              <h2>Welcome to SkyBook</h2>
+              <p>Travel smarter. Book faster. Fly happier.</p>
+            </div>
+            <div class="form-right">
+              <h3>Create Your Account</h3>
+
+              <form action="/signup" method="POST">
+                <div class="row-input-group">
+                  <div class="input-group half">
+                    <i class="fas fa-user input-icon"></i>
+                    <input
+                      type="text"
+                      name="firstName"
+                      placeholder="First Name"
+                      required
+                    />
+                  </div>
+
+                  <div class="input-group half">
+                    <i class="fas fa-user input-icon"></i>
+                    <input
+                      type="text"
+                      name="lastName"
+                      placeholder="Last Name"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="input-group">
+                  <i class="fas fa-envelope input-icon"></i>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Email Address"
+                    required
+                  />
+                </div>
+
+                <div class="input-group">
+                  <i class="fas fa-id-card input-icon"></i>
+                  <input
+                    type="text"
+                    name="passportNumber"
+                    placeholder="Passport Number"
+                    required
+                  />
+                </div>
+
+                <div class="input-group">
+                  <i class="fas fa-phone input-icon"></i>
+                  <input
+                    type="text"
+                    name="phoneNumber"
+                    placeholder="Phone Number"
+                    required
+                  />
+                </div>
+
+                <div class="input-group">
+                  <i class="fas fa-lock input-icon"></i>
+                  <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    placeholder="Password"
+                    required
+                  />
+                </div>
+
+                <div class="input-group">
+                  <i class="fas fa-lock input-icon"></i>
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    id="confirmPassword"
+                    placeholder="Confirm Password"
+                    required
+                  />
+                </div>
+
+                <div class="form-check mb-3">
+                  <input
+                    type="checkbox"
+                    id="showPassword"
+                    class="form-check-input"
+                  />
+                  <label for="showPassword" class="form-check-label"
+                    >Show Password</label
+                  >
+                </div>
+
+                <button type="submit" class="btn-submit">
+                  <i class="fas fa-user-plus"></i> Sign Up
+                </button>
+              </form>
+
+              <p class="login-link">
+                Already have an account? <a href="/login">Login here</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Optional: Auto-hide message after 3 seconds -->
+    <% if (successMessage) { %>
+    <script>
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 3000);
+    </script>
+    <% } %>
+
+    <!-- JS for password visibility toggle -->
+    <script>
+      const showPasswordCheckbox = document.getElementById("showPassword");
+      const passwordInput = document.getElementById("password");
+      const confirmPasswordInput = document.getElementById("confirmPassword");
+
+      showPasswordCheckbox.addEventListener("change", function () {
+        const type = this.checked ? "text" : "password";
+        passwordInput.type = type;
+        confirmPasswordInput.type = type;
+      });
+    </script>
+  </body>
+</html>
