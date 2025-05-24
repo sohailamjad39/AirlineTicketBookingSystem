@@ -1,0 +1,145 @@
+<!-- views/schedule.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Schedule Flights - SkyBook</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins :wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css ">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/stylesheets/dashboard.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="top-nav">
+    <div class="logo">
+      <i class="fas fa-plane-departure"></i>
+      <span>SkyBook Dashboard</span>
+    </div>
+
+    <div class="user-menu">
+      <span><%= user.FirstName %> <%= user.LastName %></span>
+      <div class="dropdown">
+        <label for="dropdown-toggle" class="dropbtn-label">
+          <i class="fas fa-user-circle"></i>
+        </label>
+        <input type="checkbox" id="dropdown-toggle" class="dropdown-toggle">
+
+        <div class="dropdown-content">
+          <a href="/profile/edit"><i class="fas fa-user-edit"></i> Edit Profile</a>
+          <a href="/bookings"><i class="fas fa-ticket-alt"></i> My Bookings</a>
+          <a href="/change-password"><i class="fas fa-key"></i> Change Password</a>
+          <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="main-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <ul>
+        <li><a href="/"><i class="fas fa-sitemap"></i> Dashboard</a></li>
+        <li class="active"><a href="/schedule"><i class="fas fa-plane"></i> Flight Scheduling</a></li>
+        <li><a href="/search"><i class="fas fa-ticket-alt"></i> Search Flights</a></li>
+        <li><a href="#"><i class="fas fa-chair"></i> Seat Management</a></li>
+        <li><a href="#"><i class="fas fa-credit-card"></i> Payments & Cancellations</a></li>
+        <li><a href="#"><i class="fas fa-chart-line"></i> Reporting & Analytics</a></li>
+        <li><a href="#"><i class="fas fa-users-cog"></i> Admin Tools</a></li>
+      </ul>
+    </aside>
+
+    <!-- Content Area -->
+    <section class="content">
+      <h1>Schedule New Flight</h1>
+      <p>Add new flights manually using the form below.</p>
+
+      <!-- Toast Message -->
+      <% if (toastMessage) { %>
+        <div class="toast <%= toastMessage.includes('success') ? 'success' : 'error' %>">
+          <%= toastMessage %>
+        </div>
+      <% } %>
+
+      <!-- Schedule Form -->
+      <form action="/schedule" method="POST" class="schedule-form">
+        <div class="form-group">
+          <label for="airlineId">Select Airline</label>
+          <select name="airlineId" id="airlineId" required>
+            <option value="">-- Select Airline --</option>
+            <% if (airlines && airlines.length > 0) { %>
+              <% airlines.forEach(airline => { %>
+                <option value="<%= airline.AirlineID %>">
+                  <%= airline.Name %> (<%= airline.Code %>)
+                </option>
+              <% }) %>
+            <% } else { %>
+              <option disabled>No airlines found</option>
+            <% } %>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="departureAirportId">Departure Airport</label>
+          <select name="departureAirportId" id="departureAirportId" required>
+            <option value="">-- Select Airport --</option>
+            <% if (airports && airports.length > 0) { %>
+              <% airports.forEach(airport => { %>
+                <option value="<%= airport.AirportID %>">
+                  <%= airport.AirportName %> - <%= airport.City %> (<%= airport.Code %>)
+                </option>
+              <% }) %>
+            <% } else { %>
+              <option disabled>No airports available</option>
+            <% } %>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="arrivalAirportId">Arrival Airport</label>
+          <select name="arrivalAirportId" id="arrivalAirportId" required>
+            <option value="">-- Select Airport --</option>
+            <% if (airports && airports.length > 0) { %>
+              <% airports.forEach(airport => { %>
+                <option value="<%= airport.AirportID %>">
+                  <%= airport.AirportName %> - <%= airport.City %> (<%= airport.Code %>)
+                </option>
+              <% }) %>
+            <% } else { %>
+              <option disabled>No airports available</option>
+            <% } %>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="departureDateTime">Departure Date & Time</label>
+          <input type="datetime-local" name="departureDateTime" id="departureDateTime" required>
+        </div>
+
+        <div class="form-group">
+          <label for="arrivalDateTime">Arrival Date & Time</label>
+          <input type="datetime-local" name="arrivalDateTime" id="arrivalDateTime" required>
+        </div>
+
+        <div class="form-group">
+          <label for="basePrice">Base Price (Economy)</label>
+          <input type="number" step="any" name="basePrice" id="basePrice" placeholder="e.g., 9000" required>
+        </div>
+
+        <button type="submit" class="btn-book">
+          <i class="fas fa-plane-departure"></i> Schedule Flight
+        </button>
+      </form>
+    </section>
+  </div>
+</body>
+</html>
