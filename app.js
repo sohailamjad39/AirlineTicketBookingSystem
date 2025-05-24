@@ -11,8 +11,9 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+
 // Use routes
-app.use('/', router);
+app.use('/', require('./routes/index'));
 
 connect().then(() => {
     app.listen(PORT, () => {

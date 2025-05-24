@@ -1,0 +1,108 @@
+<!-- views/book.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Flight - SkyBook</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins :wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css ">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/stylesheets/book.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="top-nav">
+    <div class="logo">
+      <i class="fas fa-plane-departure"></i>
+      <span>SkyBook Dashboard</span>
+    </div>
+
+    <div class="user-menu">
+      <span><%= user.FirstName %> <%= user.LastName %></span>
+      <div class="dropdown">
+        <label for="dropdown-toggle" class="dropbtn-label">
+          <i class="fas fa-user-circle"></i>
+        </label>
+        <input type="checkbox" id="dropdown-toggle" class="dropdown-toggle">
+
+        <div class="dropdown-content">
+          <a href="/profile/edit"><i class="fas fa-user-edit"></i> Edit Profile</a>
+          <a href="/bookings"><i class="fas fa-ticket-alt"></i> My Bookings</a>
+          <a href="/change-password"><i class="fas fa-key"></i> Change Password</a>
+          <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="main-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <ul>
+        <li><a href="#"><i class="fas fa-sitemap"></i> Dashboard</a></li>
+        <li><a href="#"><i class="fas fa-plane"></i> Flight Scheduling</a></li>
+        <li><a href="/search"><i class="fas fa-ticket-alt"></i> Search Flights</a></li>
+        <li><a href="#"><i class="fas fa-chair"></i> Seat Management</a></li>
+        <li><a href="#"><i class="fas fa-credit-card"></i> Payments & Cancellations</a></li>
+        <li><a href="#"><i class="fas fa-chart-line"></i> Reporting & Analytics</a></li>
+        <li><a href="#"><i class="fas fa-users-cog"></i> Admin Tools</a></li>
+      </ul>
+    </aside>
+
+    <!-- Content Area -->
+    <section class="content">
+      <h1>Book Your Flight</h1>
+
+      <% if (toastMessage) { %>
+        <div class="toast <%= toastMessage.includes('success') ? 'success' : 'error' %>">
+          <%= toastMessage %>
+        </div>
+      <% } %>
+
+      <% if (!flight) { %>
+        <p>No flight selected. Please go back and search flights.</p>
+      <% } else { %>
+
+        <!-- Flight Summary -->
+        <div class="flight-summary">
+          <h3>Flight Details</h3>
+          <p><strong>Airline:</strong> <%= flight.AirlineName %> (<%= flight.AirlineCode %>)</p>
+          <p><strong>From:</strong> <%= flight.DepartureCity %> - <%= flight.DepartureAirport %></p>
+          <p><strong>To:</strong> <%= flight.ArrivalCity %> - <%= flight.ArrivalAirport %></p>
+          <p><strong>Departure:</strong> <%= new Date(flight.DepartureDateTime).toLocaleString() %></p>
+          <p><strong>Arrival:</strong> <%= new Date(flight.ArrivalDateTime).toLocaleString() %></p>
+          <p id="priceDisplay"><strong>Price per seat:</strong> $<%= flight.BasePrice + (classType === 'Business' ? 5000 : classType === 'First' ? 10000 : 0) %></p>
+        </div>
+
+        <!-- Booking Form -->
+        <form action="/confirm-booking" method="POST">
+          <input type="hidden" name="flightId" value="<%= flight.FlightID %>">
+          <input type="hidden" name="classType" value="<%= classType %>">
+
+          <label for="seatId">Available Seats</label>
+          <select name="seatId" id="seatId" required>
+            <option value="">-- Select Seat --</option>
+            <% seats.forEach(seat => { %>
+              <option value="<%= seat.SeatID %>">
+                <%= seat.SeatNumber %> | <%= seat.ClassType %> | $<%= flight.BasePrice + (classType === 'Business' ? 5000 : classType === 'First' ? 10000 : 0) %>
+              </option>
+            <% }) %>
+          </select>
+
+          <button type="submit" class="btn-book">Confirm Booking</button>
+        </form>
+
+      <% } %>
+    </section>
+  </div>
+</body>
+</html>
