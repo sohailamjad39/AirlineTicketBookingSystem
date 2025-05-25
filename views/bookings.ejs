@@ -1,0 +1,144 @@
+<!-- views/bookings.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Bookings - SkyBook</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins :wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css ">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/stylesheets/bookings.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="top-nav">
+    <div class="logo">
+      <i class="fas fa-plane-departure"></i>
+      <span>SkyBook Dashboard</span>
+    </div>
+
+    <div class="user-menu">
+      <span><%= user.FirstName %> <%= user.LastName %></span>
+      <div class="dropdown">
+        <label for="dropdown-toggle" class="dropbtn-label">
+          <i class="fas fa-user-circle"></i>
+        </label>
+        <input type="checkbox" id="dropdown-toggle" class="dropdown-toggle">
+
+        <div class="dropdown-content">
+          <a href="/profile/edit"><i class="fas fa-user-edit"></i> Edit Profile</a>
+          <a href="/bookings"><i class="fas fa-ticket-alt"></i> My Bookings</a>
+          <a href="/change-password"><i class="fas fa-key"></i> Change Password</a>
+          <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="main-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <ul>
+        <li><a href="/"><i class="fas fa-sitemap"></i> Dashboard</a></li>
+        <li><a href="/schedule"><i class="fas fa-plane"></i> Flight Scheduling</a></li>
+        <li><a href="/search"><i class="fas fa-ticket-alt"></i> Search Flights</a></li>
+        <li><a href="#"><i class="fas fa-chair"></i> Seat Management</a></li>
+        <li><a href="#"><i class="fas fa-credit-card"></i> Payments & Cancellations</a></li>
+        <li><a href="#"><i class="fas fa-chart-line"></i> Reporting & Analytics</a></li>
+        <li><a href="#"><i class="fas fa-users-cog"></i> Admin Tools</a></li>
+      </ul>
+    </aside>
+
+    <!-- Content Area -->
+    <section class="content">
+      <h1>My Bookings</h1>
+      <p>View and manage your booked flights.</p>
+
+      <!-- Toast Message -->
+      <% if (toastMessage) { %>
+        <div class="toast <%= toastMessage.includes('success') ? 'success' : 'error' %>">
+          <%= toastMessage %>
+        </div>
+      <% } %>
+
+      <!-- Bookings Table -->
+      <% if (bookings && bookings.length > 0) { %>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Flight</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Departure</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% bookings.forEach(booking => {
+                  const now = new Date();
+                  const depart = new Date(booking.DepartureDateTime);
+                  const arrive = new Date(booking.ArrivalDateTime);
+
+                  let statusText = "Confirmed";
+                  let statusClass = "confirmed";
+                  let showCancel = false;
+
+                  if (booking.BookingStatus === "Cancelled") {
+                    statusText = "Cancelled";
+                    statusClass = "cancelled";
+                  } else if (now > depart && now < arrive) {
+                    statusText = "On Way";
+                    statusClass = "on-way";
+                  } else if (now > arrive) {
+                    statusText = "Arrived";
+                    statusClass = "arrived";
+                  } else {
+                    statusText = "Confirmed";
+                    statusClass = "confirmed";
+                    showCancel = true;
+                  }
+
+                  // Check 24-hour rule
+                  const twentyFourHoursBefore = new Date(depart.getTime() - (24 * 60 * 60 * 1000));
+                  const canCancel = now < twentyFourHoursBefore && booking.BookingStatus !== "Cancelled";
+              %>
+                <tr>
+                  <td><strong><%= booking.AirlineCode %><%= booking.FlightID %></strong></td>
+                  <td><%= booking.DepartureCity %> (<%= booking.DepartureAirport %>)</td>
+                  <td><%= booking.ArrivalCity %> (<%= booking.ArrivalAirport %>)</td>
+                  <td><%= booking.DepartureDateTime.toLocaleString() %></td>
+                  <td class="status <%= statusClass %>"><%= statusText %></td>
+                  <td>
+                    <% if (canCancel) { %>
+                      <form action="/cancel-booking" method="POST">
+                        <input type="hidden" name="bookingId" value="<%= booking.BookingID %>">
+                        <button type="submit" class="btn-cancel">Cancel</button>
+                      </form>
+                    <% } else if (booking.BookingStatus === "Cancelled") { %>
+                      <span class="cancelled">Cancelled</span>
+                    <% } else { %>
+                      <span class="no-action">N/A</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <p>No bookings found.</p>
+      <% } %>
+    </section>
+  </div>
+</body>
+</html>

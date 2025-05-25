@@ -25,7 +25,11 @@ async function getAirlines(pool) {
 }
 
 async function getAirports(pool) {
-  const result = await pool.request().query("SELECT AirportID, Name AS AirportName, Code AS AirportCode, City, CountryID FROM Airports");
+  const result = await pool
+    .request()
+    .query(
+      "SELECT AirportID, Name AS AirportName, Code AS AirportCode, City, CountryID FROM Airports"
+    );
   return result.recordset;
 }
 
@@ -668,6 +672,296 @@ router.post("/schedule", ensureAuthenticated, async (req, res) => {
       airlines: [],
       airports: [],
     });
+  }
+});
+
+// ✅ GET /profile/edit - Show edit profile form
+router.get("/profile/edit", ensureAuthenticated, async (req, res) => {
+  try {
+    const pool = require("../config/db").getPool();
+
+    // Get user data
+    const result = await pool
+      .request()
+      .input("UserID", sql.Int, req.user.id)
+      .query("SELECT * FROM Users WHERE UserID = @UserID");
+    const user = result.recordset[0];
+
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+    res.render("edit-profile", {
+      user,
+      toastMessage: null,
+    });
+  } catch (err) {
+    console.error("Error fetching user:", err.message);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// ✅ POST /profile/edit - Update profile
+router.post("/profile/edit", ensureAuthenticated, async (req, res) => {
+  const { firstName, lastName, email, passportNumber, phoneNumber } = req.body;
+
+  try {
+    const pool = require("../config/db").getPool();
+
+    // Validate input
+    if (!firstName || !lastName || !email || !passportNumber || !phoneNumber) {
+      return res.render("edit-profile", {
+        user: req.user,
+        toastMessage: "❌ All fields are required",
+      });
+    }
+
+    // Update user in DB
+    await pool
+      .request()
+      .input("UserID", sql.Int, req.user.id)
+      .input("FirstName", sql.NVarChar, firstName)
+      .input("LastName", sql.NVarChar, lastName)
+      .input("Email", sql.NVarChar, email)
+      .input("PassportNumber", sql.NVarChar, passportNumber)
+      .input("PhoneNumber", sql.NVarChar, phoneNumber).query(`
+              UPDATE Users SET
+                FirstName = @FirstName,
+                LastName = @LastName,
+                Email = @Email,
+                PassportNumber = @PassportNumber,
+                PhoneNumber = @PhoneNumber
+              WHERE UserID = @UserID
+          `);
+
+    // Re-fetch updated user
+    const result = await pool
+      .request()
+      .input("UserID", sql.Int, req.user.id)
+      .query("SELECT * FROM Users WHERE UserID = @UserID");
+    const updatedUser = result.recordset[0];
+
+    res.render("edit-profile", {
+      user: updatedUser,
+      toastMessage: "✅ Profile updated successfully!",
+    });
+  } catch (err) {
+    console.error("Profile update failed:", err.message);
+    res.render("edit-profile", {
+      user: req.user,
+      toastMessage: "❌ Failed to update profile",
+    });
+  }
+});
+
+// ✅ GET /bookings - Show all user bookings
+router.get("/bookings", ensureAuthenticated, async (req, res) => {
+  try {
+    const pool = require("../config/db").getPool();
+    const { period } = req.query;
+    let toastMessage = null;
+
+    // Build date filter based on period
+    let dateFilter = "";
+    const now = new Date();
+
+    switch (period) {
+      case "this-week":
+        dateFilter = `AND b.BookingDate >= DATEADD(DAY, -7, GETDATE())`;
+        break;
+      case "one-month":
+        dateFilter = `AND b.BookingDate >= DATEADD(MONTH, -1, GETDATE())`;
+        break;
+      case "six-months":
+        dateFilter = `AND b.BookingDate >= DATEADD(MONTH, -6, GETDATE())`;
+        break;
+      case "one-year":
+        dateFilter = `AND b.BookingDate >= DATEADD(YEAR, -1, GETDATE())`;
+        break;
+      default:
+        dateFilter = ""; // Show all bookings
+    }
+
+    // Query user's active bookings with flight & airport data
+    const query = `
+          SELECT 
+              b.BookingID,
+              b.BookingDate,
+              b.Status AS BookingStatus,
+              f.FlightID,
+              f.DepartureDateTime,
+              f.ArrivalDateTime,
+              air.Name AS AirlineName,
+              air.Code AS AirlineCode,
+              dep.Name AS DepartureAirport,
+              arr.Name AS ArrivalAirport,
+              dep.City AS DepartureCity,
+              arr.City AS ArrivalCity,
+              s.SeatNumber,
+              p.Amount
+          FROM Bookings b
+          JOIN Flights f ON b.FlightID = f.FlightID
+          JOIN Airlines air ON f.AirlineID = air.AirlineID
+          JOIN Airports dep ON f.DepartureAirportID = dep.AirportID
+          JOIN Airports arr ON f.ArrivalAirportID = arr.AirportID
+          JOIN Seats s ON b.SeatID = s.SeatID
+          LEFT JOIN Payments p ON b.BookingID = p.BookingID
+          WHERE b.UserID = @UserID ${dateFilter}
+          ORDER BY b.BookingDate DESC
+      `;
+
+    const result = await pool
+      .request()
+      .input("UserID", sql.Int, req.user.id)
+      .query(query);
+
+    const bookings = result.recordset;
+
+    if (!bookings || bookings.length === 0) {
+      toastMessage = "No bookings found.";
+    }
+
+    res.render("bookings", {
+      user: req.user,
+      bookings,
+      toastMessage,
+      selectedPeriod: period || "all",
+    });
+  } catch (err) {
+    console.error("Error fetching bookings:", err.message);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// ✅ POST /cancel-booking - Cancel booking if allowed
+router.post("/cancel-booking", ensureAuthenticated, async (req, res) => {
+  const { bookingId } = req.body;
+
+  try {
+    const pool = require("../config/db").getPool();
+
+    // Get booking info
+    const bookingResult = await pool
+      .request()
+      .input("BookingID", sql.Int, parseInt(bookingId))
+      .input("UserID", sql.Int, req.user.id).query(`
+              SELECT b.BookingID, f.DepartureDateTime
+              FROM Bookings b
+              JOIN Flights f ON b.FlightID = f.FlightID
+              WHERE b.BookingID = @BookingID AND b.UserID = @UserID
+          `);
+
+    const booking = bookingResult.recordset[0];
+    if (!booking) {
+      return res.redirect("/bookings?toastMessage=Invalid+booking+ID.");
+    }
+
+    const departureTime = new Date(booking.DepartureDateTime);
+    const now = new Date();
+    const twentyFourHoursBefore = new Date(
+      departureTime.getTime() - 24 * 60 * 60 * 1000
+    );
+
+    // Check if within 24 hours
+    if (now > twentyFourHoursBefore) {
+      return res.redirect(
+        "/bookings?toastMessage=Cannot+cancel+within+24h+of+departure."
+      );
+    }
+
+    // Cancel booking
+    await pool
+      .request()
+      .input("BookingID", sql.Int, parseInt(bookingId))
+      .query(
+        "UPDATE Bookings SET Status = 'Cancelled' WHERE BookingID = @BookingID"
+      );
+
+    // Make seat available again
+    await pool.request().input("BookingID", sql.Int, parseInt(bookingId))
+      .query(`
+              UPDATE Seats
+              SET IsAvailable = 1
+              FROM Bookings b
+              JOIN Seats s ON b.SeatID = s.SeatID
+              WHERE b.BookingID = @BookingID;
+          `);
+
+    res.redirect("/bookings");
+  } catch (err) {
+    console.error("Cancellation failed:", err.message);
+    res.redirect("/bookings?toastMessage=Failed+to+cancel+booking");
+  }
+});
+
+// ✅ GET /change-password - Show change password form
+router.get("/change-password", ensureAuthenticated, (req, res) => {
+  res.render("change-password", {
+    user: req.user,
+    toastMessage: null,
+  });
+});
+
+// ✅ GET /change-password - Show change password form
+router.get("/change-password", ensureAuthenticated, (req, res) => {
+  res.render("change-password", {
+    user: req.user,
+    toastMessage: null,
+  });
+});
+
+// ✅ POST /change-password - Handle password change
+router.post("/change-password", ensureAuthenticated, async (req, res) => {
+  const { currentPassword, newPassword, confirmNewPassword } = req.body;
+
+  // Validate inputs
+  if (!currentPassword || !newPassword || !confirmNewPassword) {
+    return res.render("change-password", {
+      user: req.user,
+      toastMessage: "❌ All fields are required.",
+    });
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    return res.render("change-password", {
+      user: req.user,
+      toastMessage: "❌ New passwords do not match.",
+    });
+  }
+
+  try {
+    const pool = require("../config/db").getPool();
+
+    // Get current user
+    const result = await pool
+      .request()
+      .input("UserID", sql.Int, req.user.id)
+      .query("SELECT * FROM Users WHERE UserID = @UserID");
+    const user = result.recordset[0];
+
+    // Check current password
+    if (user.Password !== currentPassword) {
+      return res.render("change-password", {
+        user: req.user,
+        toastMessage: "❌ Current password is incorrect.",
+      });
+    }
+
+    // Update password
+    await pool
+      .request()
+      .input("UserID", sql.Int, req.user.id)
+      .input("NewPassword", sql.NVarChar, newPassword)
+      .query("UPDATE Users SET Password = @NewPassword WHERE UserID = @UserID");
+
+    // Success message
+    res.render("change-password", {
+      user: req.user,
+      toastMessage: "✅ Password changed successfully!",
+    });
+  } catch (err) {
+    console.error("Change password failed:", err.message);
+    res.status(500).send("Internal Server Error");
   }
 });
 
