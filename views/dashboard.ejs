@@ -14,15 +14,18 @@
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="/stylesheets/dashboard.css">
+  <link rel="stylesheet" href="/stylesheets/active.css">
 </head>
 <body>
 
   <!-- Top Navigation Bar -->
   <nav class="top-nav">
-    <div class="logo">
-      <i class="fas fa-plane-departure"></i>
-      <span>SkyBook Dashboard</span>
-    </div>
+    <a href="/">
+      <div class="logo">
+        <i class="fas fa-plane-departure"></i>
+        <span>SkyBook</span>
+      </div>
+    </a>
 
     <div class="user-menu">
       <span><%= user.FirstName %> <%= user.LastName %></span>
@@ -48,13 +51,28 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <ul>
-        <li><a href="/"><i class="fas fa-sitemap"></i> Dashboard</a></li>
-        <li><a href="/schedule"><i class="fas fa-plane"></i> Flight Scheduling</a></li>
-        <li><a href="/search"><i class="fas fa-ticket-alt"></i> Search Flights</a></li>
-        <li><a href="#"><i class="fas fa-chair"></i> Seat Management</a></li>
-        <li><a href="#"><i class="fas fa-credit-card"></i> Payments & Cancellations</a></li>
-        <li><a href="#"><i class="fas fa-chart-line"></i> Reporting & Analytics</a></li>
-        <li><a href="#"><i class="fas fa-users-cog"></i> Admin Tools</a></li>
+        <!-- User Links -->
+        <li class="active"><a href="/"><i class="fas fa-sitemap"></i> Dashboard</a></li>
+        <li><a href="/bookings"><i class="fas fa-ticket-alt"></i> My Bookings</a></li>
+        <li><a href="/payments"><i class="fas fa-ticket-alt"></i> Payments & Cancellations</a></li>
+        <li><a href="/change-password"><i class="fas fa-key"></i> Change Password</a></li>
+    
+        <!-- Admin Tools Dropdown -->
+        <% if (user && user.UserID === 19) { %>
+          <li class="dropdown-parent">
+            <a href="javascript:void(0);" class="dropdown-toggle">
+              <i class="fas fa-users-cog"></i> Admin Tools
+              <i class="fas fa-chevron-down dropdown-icon"></i>
+            </a>
+            <ul class="dropdown-menu">
+              <li><a href="/schedule"><i class="fas fa-plane"></i> Schedule Flight</a></li>
+              <li><a href="/seat-management"><i class="fas fa-chair"></i> Seat Management</a></li>
+              <li><a href="/payments?admin=true"><i class="fas fa-credit-card"></i> Manage Payments</a></li>
+              <li><a href="/reporting"><i class="fas fa-chart-line"></i> Reporting & Analytics</a></li>
+              <li><a href="/admin/users"><i class="fas fa-users"></i> View Users</a></li>
+            </ul>
+          </li>
+        <% } %>
       </ul>
     </aside>
 
@@ -151,7 +169,7 @@
           <!-- Class Type -->
           <div class="form-group">
             <label for="classType">Class Type</label>
-            <select name="classType" id="classType">
+            <select name="classType" id="classType" required>
               <option value="">Any Class</option>
               <option value="Economy" <%= (classType && classType === 'Economy') ? 'selected' : '' %>>Economy</option>
               <option value="Business" <%= (classType && classType === 'Business') ? 'selected' : '' %>>Business</option>

@@ -1,9 +1,9 @@
-<!-- views/edit-profile.ejs -->
+<!-- views/admin-payments.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Edit Profile - SkyBook</title>
+  <title>Admin Panel - Manage Payments</title>
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins :wght@400;600&display=swap" rel="stylesheet">
@@ -12,18 +12,16 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css ">
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="/stylesheets/profile.css">
+  <link rel="stylesheet" href="/stylesheets/admin-payments.css">
 </head>
 <body>
 
   <!-- Top Navigation Bar -->
   <nav class="top-nav">
-    <a href="/">
-      <div class="logo">
-        <i class="fas fa-plane-departure"></i>
-        <span>SkyBook</span>
-      </div>
-    </a>
+    <div class="logo">
+      <i class="fas fa-plane-departure"></i>
+      <span>SkyBook Dashboard</span>
+    </div>
 
     <div class="user-menu">
       <span><%= user.FirstName %> <%= user.LastName %></span>
@@ -45,12 +43,12 @@
 
   <!-- Main Container -->
   <div class="main-container">
-
+    
     <!-- Sidebar -->
     <aside class="sidebar">
       <ul>
         <!-- User Links -->
-        <li class="active"><a href="/"><i class="fas fa-sitemap"></i> Dashboard</a></li>
+        <li><a href="/"><i class="fas fa-sitemap"></i> Dashboard</a></li>
         <li><a href="/bookings"><i class="fas fa-ticket-alt"></i> My Bookings</a></li>
         <li><a href="/payments"><i class="fas fa-ticket-alt"></i> Payments & Cancellations</a></li>
         <li><a href="/change-password"><i class="fas fa-key"></i> Change Password</a></li>
@@ -76,8 +74,8 @@
 
     <!-- Content Area -->
     <section class="content">
-      <h1>Edit Your Profile</h1>
-      <p>Update your personal information below.</p>
+      <h1>Manage Payments</h1>
+      <p>View and manage payment records system-wide.</p>
 
       <!-- Toast Message -->
       <% if (toastMessage) { %>
@@ -86,57 +84,47 @@
         </div>
       <% } %>
 
-      <!-- Edit Form -->
-      <form action="/profile/edit" method="POST" class="profile-form">
-        <div class="form-group">
-          <label for="firstName">First Name</label>
-          <input type="text"
-                 name="firstName"
-                 id="firstName"
-                 value="<%= user.FirstName %>"
-                 required>
+      <!-- Payments Table -->
+      <% if (payments && payments.length > 0) { %>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Payment ID</th>
+                <th>User</th>
+                <th>Flight</th>
+                <th>Journey</th>
+                <th>Departure</th>
+                <th>Arrival</th>
+                <th>Amount</th>
+                <th>Payment Status</th>
+                <th>Booking Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% payments.forEach(payment => { %>
+                <tr>
+                  <td><%= payment.PaymentID %></td>
+                  <td><%= payment.UserName %> <%= payment.LastName %></td>
+                  <td><%= payment.AirlineCode %><%= payment.FlightID %></td>
+                  <td><%= payment.DepartureAirport %> → <%= payment.ArrivalAirport %></td>
+                  <td><%= new Date(payment.DepartureDateTime).toLocaleString() %></td>
+                  <td><%= new Date(payment.ArrivalDateTime).toLocaleString() %></td>
+                  <td>$<%= payment.Amount %></td>
+                  <td class="status <%= payment.PaymentStatus === 'Paid' ? 'paid' : 'pending' %>">
+                    <%= payment.PaymentStatus %>
+                  </td>
+                  <td class="status <%= payment.BookingStatus === 'Confirmed' ? 'confirmed' : payment.BookingStatus === 'Cancelled' ? 'cancelled' : 'on-way' %>">
+                    <%= payment.BookingStatus %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
         </div>
-
-        <div class="form-group">
-          <label for="lastName">Last Name</label>
-          <input type="text"
-                 name="lastName"
-                 id="lastName"
-                 value="<%= user.LastName %>"
-                 required>
-        </div>
-
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email"
-                 name="email"
-                 id="email"
-                 value="<%= user.Email %>"
-                 required>
-        </div>
-
-        <div class="form-group">
-          <label for="passportNumber">Passport Number</label>
-          <input type="text"
-                 name="passportNumber"
-                 id="passportNumber"
-                 value="<%= user.PassportNumber %>"
-                 required>
-        </div>
-
-        <div class="form-group">
-          <label for="phoneNumber">Phone Number</label>
-          <input type="tel"
-                 name="phoneNumber"
-                 id="phoneNumber"
-                 value="<%= user.PhoneNumber %>"
-                 required>
-        </div>
-
-        <button type="submit" class="btn-save">
-          <i class="fas fa-save"></i> Save Changes
-        </button>
-      </form>
+      <% } else { %>
+        <p>No payment records found.</p>
+      <% } %>
     </section>
   </div>
 </body>

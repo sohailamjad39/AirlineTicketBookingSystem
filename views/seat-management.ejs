@@ -1,9 +1,9 @@
-<!-- views/edit-profile.ejs -->
+<!-- views/seat-management.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Edit Profile - SkyBook</title>
+  <title>Seat Management - SkyBook</title>
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins :wght@400;600&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css ">
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="/stylesheets/profile.css">
+  <link rel="stylesheet" href="/stylesheets/seat-management.css">
 </head>
 <body>
 
@@ -45,7 +45,7 @@
 
   <!-- Main Container -->
   <div class="main-container">
-
+    
     <!-- Sidebar -->
     <aside class="sidebar">
       <ul>
@@ -76,8 +76,8 @@
 
     <!-- Content Area -->
     <section class="content">
-      <h1>Edit Your Profile</h1>
-      <p>Update your personal information below.</p>
+      <h1>Seat Management</h1>
+      <p>Manage seat availability for flights manually.</p>
 
       <!-- Toast Message -->
       <% if (toastMessage) { %>
@@ -86,57 +86,79 @@
         </div>
       <% } %>
 
-      <!-- Edit Form -->
-      <form action="/profile/edit" method="POST" class="profile-form">
+      <!-- Select Flight -->
+      <form action="/seat-management" method="GET">
         <div class="form-group">
-          <label for="firstName">First Name</label>
-          <input type="text"
-                 name="firstName"
-                 id="firstName"
-                 value="<%= user.FirstName %>"
-                 required>
+          <label for="flightId">Select Flight</label>
+          <select name="flightId" id="flightId" required>
+            <option value="">-- Select Flight --</option>
+            <% flights.forEach(flight => { %>
+              <option value="<%= flight.FlightID %>" <%= (flightId == flight.FlightID) ? 'selected' : '' %>>
+                <%= flight.FlightID %> | <%= flight.AirlineName %> |
+                <%= flight.DepartureAirport %> → <%= flight.ArrivalAirport %> |
+                <%= new Date(flight.DepartureDateTime).toLocaleString() %>
+              </option>
+            <% }) %>
+          </select>
         </div>
-
-        <div class="form-group">
-          <label for="lastName">Last Name</label>
-          <input type="text"
-                 name="lastName"
-                 id="lastName"
-                 value="<%= user.LastName %>"
-                 required>
-        </div>
-
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email"
-                 name="email"
-                 id="email"
-                 value="<%= user.Email %>"
-                 required>
-        </div>
-
-        <div class="form-group">
-          <label for="passportNumber">Passport Number</label>
-          <input type="text"
-                 name="passportNumber"
-                 id="passportNumber"
-                 value="<%= user.PassportNumber %>"
-                 required>
-        </div>
-
-        <div class="form-group">
-          <label for="phoneNumber">Phone Number</label>
-          <input type="tel"
-                 name="phoneNumber"
-                 id="phoneNumber"
-                 value="<%= user.PhoneNumber %>"
-                 required>
-        </div>
-
-        <button type="submit" class="btn-save">
-          <i class="fas fa-save"></i> Save Changes
+      
+        <button type="submit" class="btn-book">
+          <i class="fas fa-sync-alt"></i> Load Seats
         </button>
       </form>
+
+      <!-- Show Flight Info -->
+      <!-- views/seat-management.ejs -->
+<% if (flightData) { %>
+    <div class="flight-info">
+      <p>
+        <strong>Flight:</strong> <%= flightData.FlightID %><br/>
+        <strong>Airline:</strong> <%= flightData.AirlineName %><br/>
+        <strong>From:</strong> <%= flightData.DepartureAirport %> at <%= new Date(flightData.DepartureDateTime).toLocaleString() %><br/>
+        <strong>To:</strong> <%= flightData.ArrivalAirport %> at <%= new Date(flightData.ArrivalDateTime).toLocaleString() %>
+      </p>
+    </div>
+  <% } %>
+
+      <!-- Seats Table -->
+      <% if (seats && seats.length > 0) { %>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Seat Number</th>
+                <th>Class Type</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% seats.forEach(seat => { %>
+                <tr>
+                  <td><%= seat.SeatNumber %></td>
+                  <td><%= seat.ClassType %></td>
+                  <td class="status <%= seat.IsAvailable ? 'available' : 'booked' %>">
+                    <%= seat.IsAvailable ? '✅ Available' : '❌ Booked' %>
+                  </td>
+                  <td>
+                    <form action="/update-seat" method="POST">
+                      <input type="hidden" name="seatId" value="<%= seat.SeatID %>">
+                      <input type="hidden" name="isAvailable" value="<%= seat.IsAvailable ? 0 : 1 %>">
+                      <button type="submit" class="btn-action">
+                        <%= seat.IsAvailable ? 'Mark as Booked' : 'Mark as Available' %>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else if (flightId) { %>
+        <p>No seats found for this flight.</p>
+      <% } else { %>
+        <p>Select a flight to manage seat availability.</p>
+      <% } %>
     </section>
   </div>
 </body>

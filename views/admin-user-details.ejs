@@ -1,0 +1,141 @@
+<!-- views/admin-user-details.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Details - SkyBook</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins :wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css ">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/stylesheets/admin-user-details.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="top-nav">
+    <a href="/">
+      <div class="logo">
+        <i class="fas fa-plane-departure"></i>
+        <span>SkyBook</span>
+      </div>
+    </a>
+
+    <div class="user-menu">
+      <!-- ✅ Use adminUser instead of undefined "user" -->
+      <span><%= adminUser.FirstName %> <%= adminUser.LastName %></span>
+      <div class="dropdown">
+        <label for="dropdown-toggle" class="dropbtn-label">
+          <i class="fas fa-user-circle"></i>
+        </label>
+        <input type="checkbox" id="dropdown-toggle" class="dropdown-toggle">
+
+        <div class="dropdown-content">
+          <a href="/profile/edit"><i class="fas fa-user-edit"></i> Edit Profile</a>
+          <a href="/bookings"><i class="fas fa-ticket-alt"></i> My Bookings</a>
+          <a href="/change-password"><i class="fas fa-key"></i> Change Password</a>
+          <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="main-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <ul>
+        <li><a href="/"><i class="fas fa-sitemap"></i> Dashboard</a></li>
+        <li><a href="/schedule"><i class="fas fa-plane"></i> Flight Scheduling</a></li>
+        <li><a href="/seat-management"><i class="fas fa-chair"></i> Seat Management</a></li>
+        <li><a href="/payments"><i class="fas fa-credit-card"></i> Payments & Cancellations</a></li>
+        <li><a href="/reporting"><i class="fas fa-chart-line"></i> Reporting & Analytics</a></li>
+        <!-- Admin Tools Dropdown -->
+        <% if (adminUser && adminUser.id === 1) { %>
+          <li class="dropdown-parent">
+            <a href="javascript:void(0);" class="dropdown-toggle">
+              <i class="fas fa-users-cog"></i> Admin Tools
+              <i class="fas fa-chevron-down dropdown-icon"></i>
+            </a>
+            <ul class="dropdown-menu">
+              <li><a href="/schedule"><i class="fas fa-plane"></i> Schedule Flight</a></li>
+              <li><a href="/seat-management"><i class="fas fa-chair"></i> Seat Management</a></li>
+              <li><a href="/admin/payments"><i class="fas fa-credit-card"></i> Manage Payments</a></li>
+              <li><a href="/reporting"><i class="fas fa-chart-line"></i> Reporting & Analytics</a></li>
+              <li><a href="/admin/users"><i class="fas fa-users"></i> View Users</a></li>
+            </ul>
+          </li>
+        <% } %>
+      </ul>
+    </aside>
+
+    <!-- Content Area -->
+    <section class="content">
+      <h1>User Details</h1>
+      <p>Full profile and booking history of <%= userDetails.FirstName %> <%= userDetails.LastName %></p>
+
+      <!-- Toast Message -->
+      <% if (toastMessage) { %>
+        <div class="toast <%= toastMessage.includes('success') ? 'success' : 'error' %>">
+          <%= toastMessage %>
+        </div>
+      <% } %>
+
+      <!-- User Profile Section -->
+      <div class="user-profile">
+        <h2>Profile Information</h2>
+        <table class="info-table">
+          <tr>
+            <th>Field</th>
+            <th>Value</th>
+          </tr>
+          <tr><td>User ID</td><td><%= userDetails.UserID %></td></tr>
+          <tr><td>First Name</td><td><%= userDetails.FirstName %></td></tr>
+          <tr><td>Last Name</td><td><%= userDetails.LastName %></td></tr>
+          <tr><td>Email</td><td><%= userDetails.Email %></td></tr>
+          <tr><td>Passport Number</td><td><%= userDetails.PassportNumber %></td></tr>
+          <tr><td>Phone Number</td><td><%= userDetails.PhoneNumber %></td></tr>
+        </table>
+      </div>
+
+      <!-- Booking History -->
+      <% if (bookings && bookings.length > 0) { %>
+        <div class="booking-history">
+          <h2>Booking History</h2>
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Flight</th>
+                <th>Journey</th>
+                <th>Departure</th>
+                <th>Status</th>
+                <th>Seat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% bookings.forEach(booking => { %>
+                <tr>
+                  <td><%= booking.AirlineCode %><%= booking.FlightID %></td>
+                  <td><%= booking.DepartureAirport %> → <%= booking.ArrivalAirport %></td>
+                  <td><%= new Date(booking.DepartureDateTime).toLocaleString() %></td>
+                  <td class="status <%= booking.BookingStatus === 'Cancelled' ? 'cancelled' : 'confirmed' %>">
+                    <%= booking.BookingStatus %>
+                  </td>
+                  <td><%= booking.SeatNumber %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <p>No booking history found for this user.</p>
+      <% } %>
+    </section>
+  </div>
+</body>
+</html>

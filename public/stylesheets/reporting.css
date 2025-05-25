@@ -10,11 +10,12 @@
     font-family: 'Poppins', sans-serif;
     background: url('https://images.unsplash.com/photo-1620640822833-08f33893b348?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center fixed; 
 
+    /* background: black; */
     background-size: cover;
-    color: #fff;
+    color: white;
   }
   
-  /* Top Navigation Bar */
+ /* Top Navigation Bar */
 .top-nav {
     position: fixed;
     width: 100%;
@@ -137,8 +138,8 @@
   }
   
   .sidebar ul li a {
-    text-decoration: none;
     color: white;
+    text-decoration: none;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -164,46 +165,57 @@
     margin-bottom: 10px;
   }
   
-  .flight-summary {
-    background-color: rgba(0, 0, 0, 0.3);
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 30px;
+  .report-section {
+    margin-bottom: 40px;
   }
   
-  .flight-summary p {
-    margin: 8px 0;
+  .report-section h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
   }
   
-  label {
-    display: block;
-    font-size: 14px;
-    margin-top: 15px;
-  }
-  
-  select {
+  .report-table {
     width: 100%;
-    padding: 10px;
-    border-radius: 6px;
-    border: none;
-    outline: none;
-    font-size: 14px;
+    border-collapse: collapse;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    overflow: hidden;
   }
   
-  .btn-book {
-    margin-top: 20px;
-    padding: 12px;
+  .report-table th, .report-table td {
+    padding: 15px;
+    border-bottom: 1px solid #ffffff22;
+  }
+  
+  .report-table th {
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #ccc;
+  }
+  
+  .toast {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    animation: fadeInOutToast 3s ease forwards;
+  }
+  
+  .toast.success {
     background-color: #28a745;
     color: white;
-    border: none;
-    font-size: 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
   }
   
-  .btn-book:hover {
-    background-color: #218838;
+  .toast.error {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  @keyframes fadeInOutToast {
+    0%   { transform: translateY(-10px); opacity: 0; }
+    10%  { transform: translateY(0); opacity: 1; }
+    90%  { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-10px); opacity: 0; }
   }
 
   .top-nav a{

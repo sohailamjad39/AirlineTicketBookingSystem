@@ -1,0 +1,175 @@
+<!-- views/reporting.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reporting & Analytics - SkyBook</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins :wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css ">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/stylesheets/reporting.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="top-nav">
+    <a href="/">
+      <div class="logo">
+        <i class="fas fa-plane-departure"></i>
+        <span>SkyBook</span>
+      </div>
+    </a>
+
+    <div class="user-menu">
+      <span><%= user.FirstName %> <%= user.LastName %></span>
+      <div class="dropdown">
+        <label for="dropdown-toggle" class="dropbtn-label">
+          <i class="fas fa-user-circle"></i>
+        </label>
+        <input type="checkbox" id="dropdown-toggle" class="dropdown-toggle">
+
+        <div class="dropdown-content">
+          <a href="/profile/edit"><i class="fas fa-user-edit"></i> Edit Profile</a>
+          <a href="/bookings"><i class="fas fa-ticket-alt"></i> My Bookings</a>
+          <a href="/change-password"><i class="fas fa-key"></i> Change Password</a>
+          <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="main-container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <ul>
+        <!-- User Links -->
+        <li class="active"><a href="/"><i class="fas fa-sitemap"></i> Dashboard</a></li>
+        <li><a href="/bookings"><i class="fas fa-ticket-alt"></i> My Bookings</a></li>
+        <li><a href="/payments"><i class="fas fa-ticket-alt"></i> Payments & Cancellations</a></li>
+        <li><a href="/change-password"><i class="fas fa-key"></i> Change Password</a></li>
+    
+        <!-- Admin Tools Dropdown -->
+        <% if (user && user.UserID === 19) { %>
+          <li class="dropdown-parent">
+            <a href="javascript:void(0);" class="dropdown-toggle">
+              <i class="fas fa-users-cog"></i> Admin Tools
+              <i class="fas fa-chevron-down dropdown-icon"></i>
+            </a>
+            <ul class="dropdown-menu">
+              <li><a href="/schedule"><i class="fas fa-plane"></i> Schedule Flight</a></li>
+              <li><a href="/seat-management"><i class="fas fa-chair"></i> Seat Management</a></li>
+              <li><a href="/payments?admin=true"><i class="fas fa-credit-card"></i> Manage Payments</a></li>
+              <li><a href="/reporting"><i class="fas fa-chart-line"></i> Reporting & Analytics</a></li>
+              <li><a href="/admin/users"><i class="fas fa-users"></i> View Users</a></li>
+            </ul>
+          </li>
+        <% } %>
+      </ul>
+    </aside>
+
+    <!-- Content Area -->
+    <section class="content">
+      <h1>Reporting & Analytics</h1>
+      <p>View system-wide reports and insights.</p>
+
+      <!-- Toast Message -->
+      <% if (toastMessage) { %>
+        <div class="toast <%= toastMessage.includes('success') ? 'success' : 'error' %>">
+          <%= toastMessage %>
+        </div>
+      <% } %>
+
+      <!-- Top Routes Report -->
+      <div class="report-section">
+        <h2>Top 5 Routes by Bookings</h2>
+        <% if (topRoutes && topRoutes.length > 0) { %>
+          <table class="report-table">
+            <thead>
+              <tr style="text-align: left;">
+                <th style="text-align: left;">From</th>
+                <th style="text-align: left;">To</th>
+                <th style="text-align: left;">Total Bookings</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% topRoutes.forEach(route => { %>
+                <tr>
+                  <td style="text-align: left;"><%= route.DepartureAirport %></td>
+                  <td style="text-align: left;"><%= route.ArrivalAirport %></td>
+                  <td style="text-align: left;"><%= route.BookingCount %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } else { %>
+          <p>No route data found.</p>
+        <% } %>
+      </div>
+
+      <!-- Revenue by Airline -->
+      <div class="report-section">
+        <h2>Revenue by Airline</h2>
+        <% if (revenueByAirline && revenueByAirline.length > 0) { %>
+          <table class="report-table">
+            <thead>
+              <tr style="text-align: left;">
+                <th style="text-align: left;">Airline</th>
+                <th style="text-align: left;">Total Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% revenueByAirline.forEach(report => { %>
+                <tr>
+                  <td style="text-align: left;"><%= report.AirlineName %></td>
+                  <td style="text-align: left;">$<%= report.TotalRevenue || 0 %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } else { %>
+          <p>No revenue data found.</p>
+        <% } %>
+      </div>
+
+      <!-- Flights Per Month -->
+      <div class="report-section">
+        <h2>Flights Scheduled Per Month</h2>
+        <% if (flightsPerMonth && flightsPerMonth.length > 0) { %>
+          <table class="report-table">
+            <thead>
+              <tr style="text-align: left;">
+                <th style="text-align: left;">Month</th>
+                <th style="text-align: left;">Flight Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% flightsPerMonth.forEach(report => { %>
+                <tr>
+                  <td style="text-align: left;"><%= report.Month %></td>
+                  <td style="text-align: left;"><%= report.FlightCount %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } else { %>
+          <p>No flight scheduling data found.</p>
+        <% } %>
+      </div>
+
+      <!-- Cancellation Summary -->
+      <div class="report-section">
+        <h2>Cancellation Summary</h2>
+        <p style="text-align: left;"><strong>Total Cancelled Bookings:</strong> <%= totalCancellations %></p>
+      </div>
+
+    </section>
+  </div>
+</body>
+</html>

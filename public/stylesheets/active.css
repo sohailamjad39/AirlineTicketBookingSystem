@@ -1,0 +1,8 @@
+.sidebar ul li.active a {
+  color: #00c9ff;
+}
+
+.sidebar ul li.active a i.fas,
+.sidebar ul li.active a .fas {
+  color: #00c9ff;
+}

@@ -11,7 +11,7 @@
     background: url('https://images.unsplash.com/photo-1620640822833-08f33893b348?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center fixed; 
 
     background-size: cover;
-    color: #fff;
+    color: white;
   }
   
   /* Top Navigation Bar */
@@ -137,8 +137,8 @@
   }
   
   .sidebar ul li a {
-    text-decoration: none;
     color: white;
+    text-decoration: none;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -163,50 +163,96 @@
     font-size: 24px;
     margin-bottom: 10px;
   }
-  
-  .flight-summary {
-    background-color: rgba(0, 0, 0, 0.3);
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 30px;
+
+  .content p {
+    margin-bottom: 20px;
   }
   
-  .flight-summary p {
-    margin: 8px 0;
+  /* Toast Message */
+  .toast {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   }
   
-  label {
-    display: block;
-    font-size: 14px;
-    margin-top: 15px;
-  }
-  
-  select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 6px;
-    border: none;
-    outline: none;
-    font-size: 14px;
-  }
-  
-  .btn-book {
-    margin-top: 20px;
-    padding: 12px;
+  .toast.success {
     background-color: #28a745;
     color: white;
-    border: none;
-    font-size: 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
   }
   
-  .btn-book:hover {
-    background-color: #218838;
+  .toast.error {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  /* User Profile Info Table */
+  .user-profile {
+    margin-bottom: 30px;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
   }
 
-  .top-nav a{
+   h2{
+    margin-bottom: 10px;
+  }
+  
+  .info-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: transparent;
+  }
+  
+  .info-table th, .info-table td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #ffffff22;
+  }
+  
+  .info-table th {
+    background-color: #00000055;
+    color: white;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+  }
+  
+  .info-table td {
+    color: white;
+  }
+  
+  /* Booking History */
+  .booking-history table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .booking-history th, .booking-history td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ffffff22;
+  }
+  
+  .booking-history th {
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #ccc;
+  }
+  
+  .status.confirmed {
+    color: #28a745;
+    font-weight: bold;
+  }
+  
+  .status.cancelled {
+    color: #dc3545;
+    font-weight: bold;
+  }
+
+  .top-nav a {
     color: #fff;
     text-decoration: none;
   }

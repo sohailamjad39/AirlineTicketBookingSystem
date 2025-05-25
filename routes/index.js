@@ -33,11 +33,45 @@ async function getAirports(pool) {
   return result.recordset;
 }
 
-// Signup Page (GET)
+async function getAllUsers(pool) {
+  const result = await pool.request().query(`
+      SELECT 
+          u.UserID,
+          u.FirstName,
+          u.LastName,
+          u.Email,
+          u.PassportNumber,
+          u.PhoneNumber,
+          u.RegistrationDate,
+          ISNULL(b.BookingCount, 0) AS BookingCount
+      FROM Users u
+      LEFT JOIN (
+          SELECT UserID, COUNT(*) AS BookingCount
+          FROM Bookings GROUP BY UserID
+      ) b ON u.UserID = b.UserID
+      ORDER BY u.UserID ASC
+  `);
+  return result.recordset;
+}
+
+// ✅ GET /signup - Show signup form
 router.get("/signup", (req, res) => {
+  // ✅ If user is already logged in, redirect to dashboard
+  const token = req.cookies.token;
+  if (token) {
+      try {
+          const user = verifyToken(token);
+          if (user && user.id) {
+              return res.redirect("/");
+          }
+      } catch (err) {
+          // Token invalid or expired – allow access to signup
+      }
+  }
+
   res.render("signup", {
-    successMessage: null,
-    errorMessage: null,
+      successMessage: null,
+      errorMessage: null
   });
 });
 
@@ -111,11 +145,24 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-// Login Page (GET)
+// ✅ GET /login - Show login form
 router.get("/login", (req, res) => {
+  // Check if user is already logged in
+  const token = req.cookies.token;
+  if (token) {
+      try {
+          const user = verifyToken(token);
+          if (user && user.id) {
+              return res.redirect("/");
+          }
+      } catch (err) {
+          // Token invalid or expired – allow access to login page
+      }
+  }
+
   res.render("login", {
-    successMessage: null,
-    errorMessage: null,
+      successMessage: null,
+      errorMessage: null
   });
 });
 
@@ -176,9 +223,7 @@ router.get("/", ensureAuthenticated, async (req, res) => {
     const user = userResult.recordset[0];
 
     // ✈️ Get Countries
-    const countriesResult = await pool
-      .request()
-      .query("SELECT * FROM Countries");
+    const countriesResult = await pool.request().query("SELECT * FROM Countries");
     const countries = countriesResult.recordset;
 
     // ✈️ Get Airlines
@@ -224,9 +269,9 @@ router.get("/", ensureAuthenticated, async (req, res) => {
 
     const bookings = bookingResult.recordset;
 
-    // ✅ Pass empty strings for form fields
+    // ✅ Pass all data to dashboard
     res.render("dashboard", {
-      user,
+      user: user, // ✅ This ensures user is available in EJS
       bookings,
       flights: [],
       airports,
@@ -234,7 +279,7 @@ router.get("/", ensureAuthenticated, async (req, res) => {
       countries,
       toastMessage: null,
 
-      // ✅ Initialize all form values as empty
+      // ✅ Initialize form values
       originCountry: "",
       origin: "",
       destinationCountry: "",
@@ -243,6 +288,7 @@ router.get("/", ensureAuthenticated, async (req, res) => {
       airline: "",
       classType: "",
     });
+
   } catch (err) {
     console.error("Error fetching dashboard data:", err.message);
     res.status(500).send("Internal Server Error");
@@ -384,36 +430,36 @@ router.get("/search", ensureAuthenticated, async (req, res) => {
   }
 });
 
-// ✅ /book route - Book Flight
+// ✅ GET /book - Show available seats for booking
 router.get("/book", ensureAuthenticated, async (req, res) => {
   try {
-    const pool = require("../config/db").getPool();
-    const { flightId, classType } = req.query;
+      const pool = require("../config/db").getPool();
+      const { flightId, classType } = req.query;
 
-    if (!flightId || isNaN(parseInt(flightId))) {
-      return res.render("book", {
-        user: req.user,
-        toastMessage: "No valid flight selected.",
-        flight: null,
-        seats: [],
-        classType: null,
-      });
-    }
+      if (!flightId || isNaN(parseInt(flightId))) {
+          return res.render("book", {
+              user: req.user,
+              toastMessage: "No valid flight selected.",
+              flight: null,
+              seats: [],
+              classType: null,
+          });
+      }
 
-    if (!classType || !["Economy", "Business", "First"].includes(classType)) {
-      return res.status(400).send("Invalid class type");
-    }
+      if (!classType || !["Economy", "Business", "First"].includes(classType)) {
+          return res.status(400).send("Invalid class type");
+      }
 
-    // Get Flight Info
-    const flightResult = await pool
-      .request()
-      .input("FlightID", sql.Int, parseInt(flightId)).query(`
+      // Get Flight Info
+      const flightResult = await pool
+          .request()
+          .input("FlightID", sql.Int, parseInt(flightId))
+          .query(`
               SELECT 
                   f.FlightID,
                   f.DepartureDateTime,
                   f.ArrivalDateTime,
                   air.Name AS AirlineName,
-                  air.Code AS AirlineCode,
                   dep.Name AS DepartureAirport,
                   arr.Name AS ArrivalAirport,
                   dep.City AS DepartureCity,
@@ -425,110 +471,142 @@ router.get("/book", ensureAuthenticated, async (req, res) => {
               JOIN Airports arr ON f.ArrivalAirportID = arr.AirportID
               WHERE f.FlightID = @FlightID
           `);
-    const flight = flightResult.recordset[0];
+      const flight = flightResult.recordset[0];
 
-    if (!flight) {
-      return res.render("book", {
-        user: req.user,
-        toastMessage: "Invalid flight ID.",
-        flight: null,
-        seats: [],
-        classType,
-      });
-    }
+      if (!flight) {
+          return res.render("book", {
+              user: req.user,
+              toastMessage: "Invalid flight ID.",
+              flight: null,
+              seats: [],
+              classType,
+          });
+      }
 
-    // Get Available Seats (of selected class)
-    const seatsResult = await pool
-      .request()
-      .input("FlightID", sql.Int, parseInt(flightId))
-      .input("ClassType", sql.NVarChar, classType).query(`
+      // ✅ Check if flight has already departed
+      const now = new Date();
+      const departureTime = new Date(flight.DepartureDateTime);
+
+      if (departureTime < now) {
+          return res.render("book", {
+              user: req.user,
+              toastMessage: "❌ You cannot book a flight that has already departed.",
+              flight: null,
+              seats: [],
+              classType,
+          });
+      }
+
+      // ✅ Get Available Seats of Selected Class
+      const seatsResult = await pool
+          .request()
+          .input("FlightID", sql.Int, parseInt(flightId))
+          .input("ClassType", sql.NVarChar, classType)
+          .query(`
               SELECT * FROM Seats 
               WHERE FlightID = @FlightID AND ClassType = @ClassType AND IsAvailable = 1
           `);
-    const seats = seatsResult.recordset;
+      const seats = seatsResult.recordset;
 
-    // Enhance seats with total price
-    let additionalPrice = 0;
-    switch (classType) {
-      case "Business":
-        additionalPrice = 5000;
-        break;
-      case "First":
-        additionalPrice = 10000;
-        break;
-      default:
-        additionalPrice = 0;
-    }
+      res.render("book", {
+          user: req.user,
+          toastMessage: null,
+          flight,
+          seats,
+          classType,
+      });
 
-    const enhancedSeats = seats.map((seat) => ({
-      ...seat,
-      TotalPrice: flight.BasePrice + additionalPrice,
-    }));
-
-    res.render("book", {
-      user: req.user,
-      toastMessage: null,
-      flight,
-      seats: enhancedSeats,
-      classType,
-    });
   } catch (err) {
-    console.error("Error fetching flight:", err.message);
-    res.status(500).send("Internal Server Error");
+      console.error("Error fetching flight:", err.message);
+      res.status(500).send("Internal Server Error");
   }
 });
 
-// ✅ /confirm-booking - Confirm selected seat booking
+// ✅ POST /confirm-booking - Confirm selected seat booking
 router.post("/confirm-booking", ensureAuthenticated, async (req, res) => {
   const { flightId, seatId, classType } = req.body;
 
   if (!flightId || !seatId || !classType) {
-    return res.render("book", {
-      user: req.user,
-      toastMessage: "Please select a valid flight and seat.",
-      flight: null,
-      seats: [],
-      classType: "",
-    });
+      return res.render("book", {
+          user: req.user,
+          toastMessage: "Please select a valid flight and seat.",
+          flight: null,
+          seats: [],
+          classType
+      });
   }
 
   try {
-    const pool = require("../config/db").getPool();
+      const pool = require("../config/db").getPool();
 
-    // Insert into Bookings
-    await pool
-      .request()
-      .input("UserID", sql.Int, req.user.id)
-      .input("FlightID", sql.Int, parseInt(flightId))
-      .input("SeatID", sql.Int, parseInt(seatId)).query(`
+      // ✅ Check if flight exists and get departure time
+      const flightCheck = await pool
+          .request()
+          .input("FlightID", sql.Int, parseInt(flightId))
+          .query(`
+              SELECT DepartureDateTime FROM Flights WHERE FlightID = @FlightID
+          `);
+
+      const flightData = flightCheck.recordset[0];
+      if (!flightData) {
+          return res.render("book", {
+              user: req.user,
+              toastMessage: "❌ Invalid flight ID.",
+              flight: null,
+              seats: [],
+              classType
+          });
+      }
+
+      const departureTime = new Date(flightData.DepartureDateTime);
+      const now = new Date();
+
+      if (departureTime < now) {
+          return res.render("book", {
+              user: req.user,
+              toastMessage: "❌ This flight has already departed.",
+              flight: null,
+              seats: [],
+              classType
+          });
+      }
+
+      // ✅ Insert into Bookings
+      await pool
+          .request()
+          .input("UserID", sql.Int, req.user.id)
+          .input("FlightID", sql.Int, parseInt(flightId))
+          .input("SeatID", sql.Int, parseInt(seatId))
+          .query(`
               INSERT INTO Bookings (UserID, FlightID, SeatID, Status)
               VALUES (@UserID, @FlightID, @SeatID, 'Confirmed')
           `);
 
-    // Update seat availability
-    await pool
-      .request()
-      .input("SeatID", sql.Int, parseInt(seatId))
-      .query("UPDATE Seats SET IsAvailable = 0 WHERE SeatID = @SeatID");
+      // ✅ Update seat availability
+      await pool
+          .request()
+          .input("SeatID", sql.Int, parseInt(seatId))
+          .query("UPDATE Seats SET IsAvailable = 0 WHERE SeatID = @SeatID");
 
-    // ✅ Set success message and redirect via client-side JS
-    return res.render("book", {
-      user: req.user,
-      toastMessage: "✅ Booking confirmed!",
-      flight: null,
-      seats: [],
-      classType,
-      autoRedirect: true, // Add flag for EJS
-    });
+      // ✅ Render success message with autoRedirect flag
+      return res.render("book", {
+          user: req.user,
+          toastMessage: "✅ Booking confirmed!",
+          flight: null,
+          seats: [],
+          classType,
+          autoRedirect: true
+      });
+
   } catch (err) {
-    console.error("Booking failed:", err.message);
-    return res.status(500).render("book", {
-      user: req.user,
-      toastMessage: "❌ Error confirming booking",
-      flight: null,
-      seats: [],
-      classType,
-    });
+      console.error("Booking failed:", err.message);
+      return res.status(500).render("book", {
+          user: req.user,
+          toastMessage: "❌ Error confirming booking",
+          flight: null,
+          seats: [],
+          classType
+      });
   }
 });
 
@@ -962,6 +1040,546 @@ router.post("/change-password", ensureAuthenticated, async (req, res) => {
   } catch (err) {
     console.error("Change password failed:", err.message);
     res.status(500).send("Internal Server Error");
+  }
+});
+
+// ✅ GET /payments - Show user's payment history and cancellations
+router.get("/payments", ensureAuthenticated, async (req, res) => {
+  try {
+      const pool = require("../config/db").getPool();
+
+      // Get user's bookings with flight info
+      const result = await pool.request()
+          .input("UserID", sql.Int, req.user.id)
+          .query(`
+              SELECT 
+                  b.BookingID,
+                  f.FlightID,
+                  f.DepartureDateTime,
+                  f.ArrivalDateTime,
+                  air.Name AS AirlineName,
+                  air.Code AS AirlineCode,
+                  dep.City AS DepartureCity,
+                  arr.City AS ArrivalCity,
+                  dep.Name AS DepartureAirport,
+                  arr.Name AS ArrivalAirport,
+                  s.SeatNumber,
+                  s.ClassType,
+                  b.Status AS BookingStatus,
+                  f.BasePrice,
+                  CASE s.ClassType
+                      WHEN 'Economy' THEN f.BasePrice
+                      WHEN 'Business' THEN f.BasePrice + 5000
+                      WHEN 'First' THEN f.BasePrice + 10000
+                      ELSE f.BasePrice
+                  END AS TotalPrice
+              FROM Bookings b
+              JOIN Flights f ON b.FlightID = f.FlightID
+              JOIN Airlines air ON f.AirlineID = air.AirlineID
+              JOIN Airports dep ON f.DepartureAirportID = dep.AirportID
+              JOIN Airports arr ON f.ArrivalAirportID = arr.AirportID
+              JOIN Seats s ON b.SeatID = s.SeatID
+              WHERE b.UserID = @UserID
+              ORDER BY b.BookingDate DESC
+          `);
+
+      const payments = result.recordset;
+
+      if (!payments || payments.length === 0) {
+          return res.render("payments", {
+              user: req.user,
+              payments: [],
+              toastMessage: "No payment records found.",
+          });
+      }
+
+      res.render("payments", {
+          user: req.user,
+          payments,
+          toastMessage: null,
+      });
+
+  } catch (err) {
+      console.error("Error fetching user payments:", err.message);
+      res.status(500).send("Internal Server Error");
+  }
+});
+
+// ✅ POST /cancel-payment-booking - Cancel booking if allowed
+router.post(
+  "/cancel-payment-booking",
+  ensureAuthenticated,
+  async (req, res) => {
+    const { bookingId } = req.body;
+
+    try {
+      const pool = require("../config/db").getPool();
+
+      // Get booking with departure time
+      const bookingResult = await pool
+        .request()
+        .input("BookingID", sql.Int, parseInt(bookingId))
+        .input("UserID", sql.Int, req.user.id).query(`
+              SELECT 
+                  b.BookingID,
+                  f.DepartureDateTime
+              FROM Bookings b
+              JOIN Flights f ON b.FlightID = f.FlightID
+              WHERE b.BookingID = @BookingID AND b.UserID = @UserID
+          `);
+
+      const booking = bookingResult.recordset[0];
+      if (!booking) {
+        return res.redirect("/payments?toastMessage=Invalid+booking+ID.");
+      }
+
+      const departureTime = new Date(booking.DepartureDateTime);
+      const twentyFourHoursBefore = new Date(
+        departureTime.getTime() - 24 * 60 * 60 * 1000
+      );
+      const now = new Date();
+
+      if (now > twentyFourHoursBefore) {
+        return res.redirect(
+          "/payments?toastMessage=Cannot+cancel+within+24h+of+departure."
+        );
+      }
+
+      // Update booking status
+      await pool
+        .request()
+        .input("BookingID", sql.Int, parseInt(bookingId))
+        .query(
+          "UPDATE Bookings SET Status = 'Cancelled' WHERE BookingID = @BookingID"
+        );
+
+      // Make seat available again
+      await pool.request().input("BookingID", sql.Int, parseInt(bookingId))
+        .query(`
+              UPDATE Seats
+              SET IsAvailable = 1
+              FROM Bookings b
+              JOIN Seats s ON b.SeatID = s.SeatID
+              WHERE b.BookingID = @BookingID;
+          `);
+
+      res.redirect("/payments");
+    } catch (err) {
+      console.error("Cancellation failed:", err.message);
+      res.redirect("/payments?toastMessage=Failed+to+cancel+booking");
+    }
+  }
+);
+
+// ✅ GET /seat-management - Admin-style seat management
+router.get("/seat-management", ensureAuthenticated, async (req, res) => {
+  try {
+    const pool = require("../config/db").getPool();
+
+    // Simulate admin check
+    if (req.user.id !== 19) {
+      return res.status(403).send("Access Denied");
+    }
+
+    const { flightId } = req.query;
+    let toastMessage = null;
+
+    // ✅ Get flights with airline & airport names
+    const flightsResult = await pool.request().query(`
+          SELECT 
+              f.FlightID,
+              air.Name AS AirlineName,
+              dep.Name AS DepartureAirport,
+              arr.Name AS ArrivalAirport,
+              f.DepartureDateTime
+          FROM Flights f
+          JOIN Airlines air ON f.AirlineID = air.AirlineID
+          JOIN Airports dep ON f.DepartureAirportID = dep.AirportID
+          JOIN Airports arr ON f.ArrivalAirportID = arr.AirportID
+          ORDER BY f.DepartureDateTime ASC
+      `);
+    const flights = flightsResult.recordset;
+
+    let selectedFlight = null;
+    let seats = [];
+
+    // If flightId provided, get its seats + flight info
+    if (flightId && !isNaN(parseInt(flightId))) {
+      const flightResult = await pool
+        .request()
+        .input("FlightID", sql.Int, parseInt(flightId)).query(`
+                  SELECT 
+                      f.FlightID,
+                      air.Name AS AirlineName,
+                      dep.Name AS DepartureAirport,
+                      arr.Name AS ArrivalAirport,
+                      f.DepartureDateTime,
+                      f.ArrivalDateTime
+                  FROM Flights f
+                  JOIN Airlines air ON f.AirlineID = air.AirlineID
+                  JOIN Airports dep ON f.DepartureAirportID = dep.AirportID
+                  JOIN Airports arr ON f.ArrivalAirportID = arr.AirportID
+                  WHERE f.FlightID = @FlightID
+              `);
+
+      selectedFlight = flightResult.recordset[0];
+
+      if (!selectedFlight) {
+        toastMessage = "❌ Invalid flight ID.";
+      } else {
+        // Get seats for this flight
+        const seatsResult = await pool
+          .request()
+          .input("FlightID", sql.Int, parseInt(flightId))
+          .query("SELECT * FROM Seats WHERE FlightID = @FlightID");
+        seats = seatsResult.recordset;
+      }
+    }
+
+    // ✅ Render template with correct variables
+    res.render("seat-management", {
+      user: req.user,
+      flights,
+      seats,
+      toastMessage,
+      flightId: flightId || "",
+      flightData: selectedFlight || null,
+    });
+  } catch (err) {
+    console.error("Error fetching seat data:", err.message);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// ✅ POST /update-seat - Update seat availability
+router.post("/update-seat", ensureAuthenticated, async (req, res) => {
+  const { seatId, isAvailable } = req.body;
+
+  if (
+    !seatId ||
+    isNaN(parseInt(seatId)) ||
+    ![0, 1].includes(parseInt(isAvailable))
+  ) {
+    return res.redirect("/seat-management");
+  }
+
+  try {
+    const pool = require("../config/db").getPool();
+
+    // Update seat availability
+    await pool
+      .request()
+      .input("SeatID", sql.Int, parseInt(seatId))
+      .input("IsAvailable", sql.Bit, parseInt(isAvailable))
+      .query(
+        "UPDATE Seats SET IsAvailable = @IsAvailable WHERE SeatID = @SeatID"
+      );
+
+    const seatResult = await pool
+      .request()
+      .input("SeatID", sql.Int, parseInt(seatId))
+      .query("SELECT FlightID FROM Seats WHERE SeatID = @SeatID");
+    const flightId = seatResult.recordset[0]?.FlightID || "";
+
+    res.redirect(`/seat-management?flightId=${flightId}`);
+  } catch (err) {
+    console.error("Error updating seat:", err.message);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// ✅ GET /reporting - Reporting & Analytics Page
+router.get("/reporting", ensureAuthenticated, async (req, res) => {
+  try {
+    const pool = require("../config/db").getPool();
+
+    // Simulate admin check
+    if (req.user.id !== 19) {
+      // Assume user ID 1 is admin
+      return res.status(403).send("Access Denied");
+    }
+
+    // 📊 Report 1: Top Routes by Number of Bookings
+    const topRoutesResult = await pool.request().query(`
+          SELECT TOP 5
+              dep.Name AS DepartureAirport,
+              arr.Name AS ArrivalAirport,
+              COUNT(b.BookingID) AS BookingCount
+          FROM Bookings b
+          JOIN Flights f ON b.FlightID = f.FlightID
+          JOIN Airports dep ON f.DepartureAirportID = dep.AirportID
+          JOIN Airports arr ON f.ArrivalAirportID = arr.AirportID
+          GROUP BY dep.Name, arr.Name
+          ORDER BY BookingCount DESC
+      `);
+    const topRoutes = topRoutesResult.recordset;
+
+    // 💵 Report 2: Revenue by Airline
+    const revenueByAirlineResult = await pool.request().query(`
+          SELECT 
+              air.Name AS AirlineName,
+              SUM(p.Amount) AS TotalRevenue
+          FROM Payments p
+          JOIN Bookings b ON p.BookingID = b.BookingID
+          JOIN Flights f ON b.FlightID = f.FlightID
+          JOIN Airlines air ON f.AirlineID = air.AirlineID
+          WHERE p.Status = 'Paid'
+          GROUP BY air.Name
+          ORDER BY TotalRevenue DESC
+      `);
+    const revenueByAirline = revenueByAirlineResult.recordset;
+
+    // 📅 Report 3: Flights Per Month
+    const flightsPerMonthResult = await pool.request().query(`
+          SELECT 
+              FORMAT(DepartureDateTime, 'yyyy-MM') AS Month,
+              COUNT(*) AS FlightCount
+          FROM Flights
+          GROUP BY FORMAT(DepartureDateTime, 'yyyy-MM')
+          ORDER BY Month ASC
+      `);
+    const flightsPerMonth = flightsPerMonthResult.recordset;
+
+    // 🚫 Report 4: Total Cancellations
+    const cancellationsResult = await pool.request().query(`
+          SELECT 
+              COUNT(*) AS TotalCancellations
+          FROM Cancellations
+      `);
+    const totalCancellations =
+      cancellationsResult.recordset[0]?.TotalCancellations || 0;
+
+    // ✅ Render reporting page
+    res.render("reporting", {
+      user: req.user,
+      topRoutes,
+      revenueByAirline,
+      flightsPerMonth,
+      totalCancellations,
+      toastMessage: null,
+    });
+  } catch (err) {
+    console.error("Error fetching report data:", err.message);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// ✅ GET /admin/users - Show all users (Admin Only)
+router.get("/admin/users", ensureAuthenticated, async (req, res) => {
+  try {
+      const pool = require("../config/db").getPool();
+
+      // Ensure user is admin
+      if (req.user.id !== 19) {
+          return res.status(403).send("Access Denied");
+      }
+
+      // Get all users with booking count
+      const result = await pool.request().query(`
+          SELECT 
+              u.UserID,
+              u.FirstName,
+              u.LastName,
+              u.Email,
+              u.PassportNumber,
+              u.PhoneNumber,
+              ISNULL(b.BookingCount, 0) AS BookingCount
+          FROM Users u
+          LEFT JOIN (
+              SELECT UserID, COUNT(*) AS BookingCount
+              FROM Bookings GROUP BY UserID
+          ) b ON u.UserID = b.UserID
+          ORDER BY u.UserID ASC
+      `);
+
+      const users = result.recordset;
+
+      // ✅ Pass req.user as adminUser to EJS template
+      res.render("admin-users", {
+          adminUser: req.user, // ✅ This fixes the ReferenceError
+          users,
+          toastMessage: null
+      });
+
+  } catch (err) {
+      console.error("Error fetching users:", err.message);
+      res.status(500).send("Internal Server Error");
+  }
+});
+
+// ✅ POST /admin/users/cancel-bookings - Cancel all bookings of a user
+router.post("/admin/users/cancel-bookings", ensureAuthenticated, async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+      const pool = require("../config/db").getPool();
+
+      if (req.user.id !== 19 || !userId || isNaN(parseInt(userId))) {
+          return res.redirect("/admin/users");
+      }
+
+      // Get user's confirmed bookings
+      const bookingResult = await pool
+          .request()
+          .input("UserID", sql.Int, parseInt(userId))
+          .query(`
+              SELECT b.BookingID, s.SeatID
+              FROM Bookings b
+              JOIN Seats s ON b.SeatID = s.SeatID
+              WHERE b.UserID = @UserID AND b.Status = 'Confirmed'
+          `);
+
+      const bookings = bookingResult.recordset;
+
+      if (!bookings.length) {
+          return res.render("admin-users", {
+              user: req.user,
+              users: [],
+              toastMessage: "No active bookings found for this user."
+          });
+      }
+
+      // Update seat availability
+      for (const booking of bookings) {
+          await pool.request()
+              .input("SeatID", sql.Int, booking.SeatID)
+              .query("UPDATE Seats SET IsAvailable = 1 WHERE SeatID = @SeatID");
+
+          // Mark booking as cancelled
+          await pool.request()
+              .input("BookingID", sql.Int, booking.BookingID)
+              .query("UPDATE Bookings SET Status = 'Cancelled' WHERE BookingID = @BookingID");
+      }
+
+      // Success message
+      res.render("admin-users", {
+          user: req.user,
+          users: await getAllUsers(pool),
+          toastMessage: "✅ All confirmed bookings cancelled for user ID " + userId
+      });
+
+  } catch (err) {
+      console.error("Cancellation failed:", err.message);
+      res.status(500).send("Internal Server Error");
+  }
+});
+
+// ✅ GET /admin/user/:id/details - View user details (Admin-only)
+router.get("/admin/user/:id/details", ensureAuthenticated, async (req, res) => {
+  try {
+      const pool = require("../config/db").getPool();
+
+      // Ensure user is admin
+      if (req.user.id !== 19) {
+          return res.status(403).send("Access Denied");
+      }
+
+      const userId = parseInt(req.params.id);
+
+      // Get user info
+      const userResult = await pool
+          .request()
+          .input("UserID", sql.Int, userId)
+          .query("SELECT * FROM Users WHERE UserID = @UserID");
+
+      const userDetails = userResult.recordset[0];
+
+      if (!userDetails) {
+          return res.render("admin-user-details", {
+              adminUser: req.user,
+              userDetails: null,
+              bookings: [],
+              toastMessage: "❌ User not found."
+          });
+      }
+
+      // Get user's bookings
+      const bookingResult = await pool
+          .request()
+          .input("UserID", sql.Int, userId)
+          .query(`
+              SELECT 
+                  b.BookingID,
+                  f.FlightID,
+                  air.Code AS AirlineCode,
+                  dep.Name AS DepartureAirport,
+                  arr.Name AS ArrivalAirport,
+                  f.DepartureDateTime,
+                  f.ArrivalDateTime,
+                  s.SeatNumber,
+                  b.Status AS BookingStatus
+              FROM Bookings b
+              JOIN Flights f ON b.FlightID = f.FlightID
+              JOIN Airlines air ON f.AirlineID = air.AirlineID
+              JOIN Airports dep ON f.DepartureAirportID = dep.AirportID
+              JOIN Airports arr ON f.ArrivalAirportID = arr.AirportID
+              JOIN Seats s ON b.SeatID = s.SeatID
+              WHERE b.UserID = @UserID
+              ORDER BY f.DepartureDateTime DESC
+          `);
+
+      const bookings = bookingResult.recordset;
+
+      // Render page
+      res.render("admin-user-details", {
+          adminUser: req.user,
+          userDetails,
+          bookings,
+          toastMessage: null
+      });
+
+  } catch (err) {
+      console.error("Error fetching user details:", err.message);
+      res.status(500).send("Internal Server Error");
+  }
+});
+
+// ✅ GET /admin/payments - View all payments (Admin Only)
+router.get("/admin/payments", ensureAuthenticated, async (req, res) => {
+  try {
+      const pool = require("../config/db").getPool();
+
+      // Simulate admin check – change 1 to match your actual admin ID
+      if (req.user.id !== 19) {
+          return res.status(403).send("Access Denied");
+      }
+
+      // Get all payments with user and flight info
+      const result = await pool.request().query(`
+          SELECT 
+              p.PaymentID,
+              u.FirstName AS UserName,
+              u.LastName,
+              f.FlightID,
+              air.Code AS AirlineCode,
+              dep.Name AS DepartureAirport,
+              arr.Name AS ArrivalAirport,
+              f.DepartureDateTime,
+              f.ArrivalDateTime,
+              p.Amount,
+              p.Status AS PaymentStatus,
+              b.Status AS BookingStatus
+          FROM Payments p
+          JOIN Bookings b ON p.BookingID = b.BookingID
+          JOIN Users u ON b.UserID = u.UserID
+          JOIN Flights f ON b.FlightID = f.FlightID
+          JOIN Airlines air ON f.AirlineID = air.AirlineID
+          JOIN Airports dep ON f.DepartureAirportID = dep.AirportID
+          JOIN Airports arr ON f.ArrivalAirportID = arr.AirportID
+          ORDER BY p.PaymentDate DESC
+      `);
+
+      const payments = result.recordset;
+
+      res.render("admin-payments", {
+          user: req.user,
+          payments,
+          toastMessage: null
+      });
+
+  } catch (err) {
+      console.error("Error fetching admin payments:", err.message);
+      res.status(500).send("Internal Server Error");
   }
 });
 

@@ -1,9 +1,9 @@
-<!-- views/edit-profile.ejs -->
+<!-- views/payments.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Edit Profile - SkyBook</title>
+  <title>Payments & Cancellations - SkyBook</title>
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins :wght@400;600&display=swap" rel="stylesheet">
@@ -11,8 +11,9 @@
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css ">
 
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="/stylesheets/profile.css">
+  <!-- Use existing dashboard.css -->
+  <link rel="stylesheet" href="/stylesheets/payments.css">
+  <link rel="stylesheet" href="/stylesheets/active.css">
 </head>
 <body>
 
@@ -45,14 +46,14 @@
 
   <!-- Main Container -->
   <div class="main-container">
-
+    
     <!-- Sidebar -->
     <aside class="sidebar">
       <ul>
         <!-- User Links -->
-        <li class="active"><a href="/"><i class="fas fa-sitemap"></i> Dashboard</a></li>
+        <li><a href="/"><i class="fas fa-sitemap"></i> Dashboard</a></li>
         <li><a href="/bookings"><i class="fas fa-ticket-alt"></i> My Bookings</a></li>
-        <li><a href="/payments"><i class="fas fa-ticket-alt"></i> Payments & Cancellations</a></li>
+        <li class="active"><a href="/payments"><i class="fas fa-ticket-alt"></i> Payments & Cancellations</a></li>
         <li><a href="/change-password"><i class="fas fa-key"></i> Change Password</a></li>
     
         <!-- Admin Tools Dropdown -->
@@ -76,8 +77,8 @@
 
     <!-- Content Area -->
     <section class="content">
-      <h1>Edit Your Profile</h1>
-      <p>Update your personal information below.</p>
+      <h1>Payments & Cancellations</h1>
+      <p>View your booking history and payment status.</p>
 
       <!-- Toast Message -->
       <% if (toastMessage) { %>
@@ -86,57 +87,57 @@
         </div>
       <% } %>
 
-      <!-- Edit Form -->
-      <form action="/profile/edit" method="POST" class="profile-form">
-        <div class="form-group">
-          <label for="firstName">First Name</label>
-          <input type="text"
-                 name="firstName"
-                 id="firstName"
-                 value="<%= user.FirstName %>"
-                 required>
-        </div>
+      <!-- Simulated Payment Table -->
+      <% if (payments && payments.length > 0) { %>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Flight</th>
+                <th>Journey</th>
+                <th>Departure</th>
+                <th>Seat</th>
+                <th>Class</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% payments.forEach(payment => {
+                  const depart = new Date(payment.DepartureDateTime);
+                  const arrive = new Date(payment.ArrivalDateTime);
+                  const now = new Date();
 
-        <div class="form-group">
-          <label for="lastName">Last Name</label>
-          <input type="text"
-                 name="lastName"
-                 id="lastName"
-                 value="<%= user.LastName %>"
-                 required>
-        </div>
+                  let statusText = "Confirmed";
+                  let statusClass = "confirmed";
 
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email"
-                 name="email"
-                 id="email"
-                 value="<%= user.Email %>"
-                 required>
+                  if (payment.BookingStatus === "Cancelled") {
+                      statusText = "Cancelled";
+                      statusClass = "cancelled";
+                  } else if (now > depart && now < arrive) {
+                      statusText = "On Way";
+                      statusClass = "on-way";
+                  } else if (now > arrive) {
+                      statusText = "Arrived";
+                      statusClass = "arrived";
+                  }
+              %>
+                <tr>
+                  <td><%= payment.AirlineCode %><%= payment.FlightID %></td>
+                  <td><%= payment.DepartureCity %> → <%= payment.ArrivalCity %></td>
+                  <td><%= new Date(payment.DepartureDateTime).toLocaleString() %></td>
+                  <td><%= payment.SeatNumber %></td>
+                  <td><%= payment.ClassType %></td>
+                  <td>$<%= payment.TotalPrice || 0 %></td>
+                  <td class="status <%= statusClass %>"><%= statusText %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
         </div>
-
-        <div class="form-group">
-          <label for="passportNumber">Passport Number</label>
-          <input type="text"
-                 name="passportNumber"
-                 id="passportNumber"
-                 value="<%= user.PassportNumber %>"
-                 required>
-        </div>
-
-        <div class="form-group">
-          <label for="phoneNumber">Phone Number</label>
-          <input type="tel"
-                 name="phoneNumber"
-                 id="phoneNumber"
-                 value="<%= user.PhoneNumber %>"
-                 required>
-        </div>
-
-        <button type="submit" class="btn-save">
-          <i class="fas fa-save"></i> Save Changes
-        </button>
-      </form>
+      <% } else { %>
+        <p>No payment records found.</p>
+      <% } %>
     </section>
   </div>
 </body>

@@ -8,8 +8,9 @@
   body, html {
     height: 100%;
     font-family: 'Poppins', sans-serif;
-    /* background: url('https://images.unsplash.com/photo-1502602898657-3e91760cbb34 ') no-repeat center center fixed; */
-    background: black;
+    background: url('https://images.unsplash.com/photo-1620640822833-08f33893b348?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center fixed; 
+
+    /* background: black; */
     background-size: cover;
     color: #fff;
   }
@@ -78,7 +79,7 @@
     position: absolute;
     right: 0;
     top: 40px;
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(0, 0, 0, 0.5);
     min-width: 200px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
     z-index: 1;
@@ -99,7 +100,7 @@
   }
   
   .dropdown-content a:hover {
-    background-color: rgba(255, 255, 255, 0.4);
+    background-color: rgba(0, 0, 0, 0.4);
   }
   
   .dropdown:hover .dropdown-content {
@@ -120,10 +121,11 @@
   .sidebar {
     width: 250px;
     background: linear-gradient(to bottom, #0f2027, #203a43);
-    min-height: 100vh;
+    min-height: 100%;
     padding: 30px 20px;
     backdrop-filter: blur(10px);
     border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0 10px 10px 0;
   }
   
   .sidebar ul {
@@ -152,7 +154,9 @@
   .content {
     flex-grow: 1;
     padding: 40px;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(0, 0, 0, 0.2);
+    min-height: 100vh;
+    border-radius: 15px;
     backdrop-filter: blur(10px);
   }
   
@@ -230,4 +234,9 @@
     10%  { transform: translateY(0); opacity: 1; }
     90%  { transform: translateY(0); opacity: 1; }
     100% { transform: translateY(-10px); opacity: 0; }
+  }
+
+  .top-nav a{
+    color: #fff;
+    text-decoration: none;
   }

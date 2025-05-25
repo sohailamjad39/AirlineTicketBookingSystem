@@ -9,12 +9,12 @@ body,
 html {
   height: 100%;
   font-family: "Poppins", sans-serif;
-  background: url('https://images.unsplash.com/photo-1620640822833-08f33893b348?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center fixed; 
+  background: url("https://images.unsplash.com/photo-1620640822833-08f33893b348?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")
+    no-repeat center center fixed;
 
   /* background: black; */
   background-size: cover;
-  color: #fff;
-  scroll-behavior: smooth;
+  color: white;
 }
 
 /* Top Navigation Bar */
@@ -113,22 +113,20 @@ html {
   display: block;
 }
 
-/* Main Layout */
+/* Layout */
 .main-container {
   display: flex;
   margin-top: 60px;
   min-height: calc(100vh - 60px);
 }
 
-/* Sidebar */
 .sidebar {
   width: 250px;
   background: linear-gradient(to bottom, #0f2027, #203a43);
-  min-height: 100%;
+  min-height: 100vh;
   padding: 30px 20px;
   backdrop-filter: blur(10px);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0 10px 10px 0;
 }
 
 .sidebar ul {
@@ -141,12 +139,12 @@ html {
 }
 
 .sidebar ul li a {
-  text-decoration: none;
   color: white;
+  text-decoration: none;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 15px;
+  font-size: 14px;
   transition: opacity 0.3s ease;
 }
 
@@ -154,9 +152,14 @@ html {
   opacity: 0.8;
 }
 
-.sidebar ul li a i {
-  width: 24px;
-  text-align: center;
+.sidebar {
+  width: 250px;
+  background: linear-gradient(to bottom, #0f2027, #203a43);
+  min-height: 100%;
+  padding: 30px 20px;
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0 10px 10px 0;
 }
 
 /* Main Content */
@@ -174,63 +177,25 @@ html {
   margin-bottom: 10px;
 }
 
-.content p {
-  font-size: 15px;
-  margin-bottom: 40px;
+.flight-info {
+  margin-bottom: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 15px;
+  border-radius: 8px;
 }
 
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-}
-
-.card {
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 20px;
-  border-radius: 15px;
-  text-align: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  transition: transform 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-}
-
-.card-icon {
-  font-size: 32px;
-  color: #00c9ff;
-  margin-bottom: 10px;
-}
-
-.card h3 {
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-
-.card p {
-  font-size: 14px;
-}
-
-/* Flight Search Form */
+/* Search Form */
 .search-form {
-  background-color: rgba(255, 255, 255, 0.1);
+  max-width: 600px;
+  margin-bottom: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
   padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 30px;
+  border-radius: 10px;
   backdrop-filter: blur(10px);
-}
-
-.search-row {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
 }
 
 .form-group {
-  flex: 1;
+  margin-bottom: 15px;
 }
 
 .form-group label {
@@ -239,118 +204,78 @@ html {
   margin-bottom: 5px;
 }
 
-.form-group select,
-.form-group input[type="date"] {
+.form-group select {
   width: 100%;
   padding: 10px;
   border-radius: 6px;
   border: none;
   outline: none;
   font-size: 14px;
+  background-color: #ffffff55;
+  color: rgb(0, 0, 0);
 }
 
-.btn-search {
-  width: 100%;
-  padding: 10px;
-  background-color: #00c9ff;
+.btn-book {
+  padding: 10px 20px;
+  background-color: #007bff;
   color: white;
   border: none;
-  font-weight: bold;
+  font-size: 14px;
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-.btn-search:hover {
-  background-color: #00aaff;
+.btn-book:hover {
+  background-color: #0056b3;
 }
 
-.results-table {
-  overflow-x: auto;
-}
-
+/* Results Table */
 .results-table table {
   width: 100%;
   border-collapse: collapse;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.4);
   border-radius: 10px;
   overflow: hidden;
 }
 
 .results-table th,
 .results-table td {
-  padding: 12px;
+  padding: 15px;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #ffffff22;
 }
 
 .results-table th {
-  background-color: rgba(255, 255, 255, 0.15);
-  font-weight: 600;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #ccc;
 }
 
-.btn-book {
-  display: inline-block;
-  background-color: #28a745;
+.status.available {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.status.booked {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.btn-action {
+  background-color: transparent;
+  border: 1px solid white;
   color: white;
   padding: 8px 12px;
   border-radius: 6px;
-  text-decoration: none;
-  font-size: 14px;
+  cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-.btn-book:hover {
-  background-color: #218838;
+.btn-action:hover {
+  background-color: #ffffff22;
 }
 
-.form-group select option[data-countryid] {
-  display: none;
-}
-
-.form-group select option[data-country] {
-  display: block; /* Show only when country matches */
-}
-
-.toast {
-  padding: 15px 20px;
-  border-radius: 8px;
-  font-weight: 500;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  margin-bottom: 20px;
-  animation: fadeInOutToast 3s ease forwards;
-}
-
-.toast.success {
-  background-color: #28a745;
-  color: white;
-}
-
-.toast.error {
-  background-color: #dc3545;
-  color: white;
-}
-
-@keyframes fadeInOutToast {
-  0% {
-    transform: translateY(-10px);
-    opacity: 0;
-  }
-  10% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  90% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-10px);
-    opacity: 0;
-  }
-}
-
-.top-nav a{
+.top-nav a {
   color: #fff;
   text-decoration: none;
 }

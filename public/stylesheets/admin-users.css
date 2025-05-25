@@ -1,0 +1,221 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body, html {
+    height: 100%;
+    font-family: 'Poppins', sans-serif;
+    background: url("https://images.unsplash.com/photo-1620640822833-08f33893b348?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")
+    no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+  }
+  
+  /* Top Navigation Bar */
+.top-nav {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.logo i {
+  color: #00c9ff;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropbtn {
+  background-color: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: white;
+}
+
+.dropbtn-label {
+  cursor: pointer;
+  font-size: 20px;
+  color: white;
+}
+
+.dropdown-toggle {
+  display: none;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 40px;
+  background-color: rgba(0, 0, 0, 0.5);
+  min-width: 200px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  backdrop-filter: blur(30px);
+  transition: all 0.3s ease;
+}
+
+.dropdown-content a {
+  color: white;
+  padding: 12px 20px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.3s ease;
+}
+
+.dropdown-content a:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-toggle:checked ~ .dropdown-content {
+  display: block;
+}
+  
+  /* Layout */
+  .main-container {
+    display: flex;
+    margin-top: 60px;
+    min-height: calc(100vh - 60px);
+  }
+  
+  .sidebar {
+    width: 250px;
+    background: linear-gradient(to bottom, #0f2027, #203a43);
+    min-height: 100%;
+    padding: 30px 20px;
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0 10px 10px 0;
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    margin-top: 30px;
+  }
+  
+  .sidebar ul li {
+    margin-bottom: 20px;
+  }
+  
+  .sidebar ul li a {
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    transition: opacity 0.3s ease;
+  }
+  
+  .sidebar ul li a:hover {
+    opacity: 0.8;
+  }
+  
+  .content {
+    flex-grow: 1;
+    padding: 40px;
+    background-color: rgba(0, 0, 0, 0.2);
+    min-height: 100vh;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+  }
+  
+  .content h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+
+  .content p{
+    margin-bottom: 20px;
+  }
+  
+  .toast {
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    animation: fadeInOutToast 3s ease forwards;
+  }
+  
+  .toast.success {
+    background-color: #28a745;
+  }
+  
+  .toast.error {
+    background-color: #dc3545;
+  }
+  
+  @keyframes fadeInOutToast {
+    0%   { transform: translateY(-10px); opacity: 0; }
+    10%  { transform: translateY(0); opacity: 1; }
+    90%  { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-10px); opacity: 0; }
+  }
+  
+  .results-table table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .results-table th, .results-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ffffff22;
+  }
+  
+  .results-table th {
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #ccc;
+  }
+
+  .results-table a{
+    color: #28a745;
+  }
+
+  .top-nav a {
+    color: #fff;
+    text-decoration: none;
+  }
